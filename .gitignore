@@ -1,0 +1,8 @@
+node_modules/
+coverage/
+*.tsbuildinfo
+.DS_Store
+
+# per-package build output (the action ships only the root dist/ ncc bundle)
+packages/*/dist/
+

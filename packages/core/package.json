@@ -1,0 +1,15 @@
+{
+  "name": "@pr-review-insight/core",
+  "version": "0.1.0",
+  "description": "Finding model, fingerprints, report schema, gate engine and diff attribution for PR Review Insight",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "picomatch": "^4.0.2",
+    "zod": "^3.24.0"
+  }
+}

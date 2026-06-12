@@ -1,0 +1,69 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      # hard-won rule 1: the bundled dist must load with an empty env and no
+      # stubs — a webpackMissingModule here means an ESM-only dep slipped in
+      - name: Dist smoke test
+        run: |
+          set +e
+          output=$(node dist/index.js 2>&1)
+          echo "$output"
+          if echo "$output" | grep -q 'webpackMissingModule\|Cannot find module'; then
+            echo '::error::dist bundle failed to load its modules'
+            exit 1
+          fi
+          if ! echo "$output" | grep -q 'github-token'; then
+            echo '::error::dist bundle did not reach input parsing'
+            exit 1
+          fi
+
+      # D6: same repo state in → byte-identical report out (sans timestamp)
+      - name: Determinism test
+        run: |
+          node packages/cli/bin/pri.js scan --dir fixtures/demo-app --report /tmp/r1.json || true
+          node packages/cli/bin/pri.js scan --dir fixtures/demo-app --report /tmp/r2.json || true
+          node -e "
+            const read = (p) => { const r = JSON.parse(require('fs').readFileSync(p, 'utf8')); delete r.generatedAt; return JSON.stringify(r); };
+            if (read('/tmp/r1.json') !== read('/tmp/r2.json')) { console.error('reports differ between identical runs'); process.exit(1); }
+            console.log('deterministic ✓');
+          "
+
+      # the fixture dry run must produce the expected failure shape
+      - name: Fixture gate semantics
+        run: |
+          node packages/cli/bin/pri.js scan --dir fixtures/demo-app --report /tmp/r.json
+          code=$?
+          if [ "$code" -ne 1 ]; then
+            echo "::error::expected exit 1 (gate-failed) on the seeded fixture, got $code"
+            exit 1
+          fi
+        shell: bash {0}

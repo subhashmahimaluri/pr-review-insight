@@ -1,0 +1,24 @@
+# Record the default-branch baseline after every merge — powers the
+# new-vs-pre-existing split (D3), the Δ arrows and the sparklines.
+name: Review baseline
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: subhashmahimaluri/pr-review-insight@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          mode: baseline

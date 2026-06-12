@@ -1,0 +1,28 @@
+{
+  "name": "@pr-review-insight/scanners",
+  "version": "0.1.0",
+  "description": "Scanner adapters (knip, jscpd, eslint, secretlint, npm audit, madge, pentest-lite) for PR Review Insight",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@pr-review-insight/core": "0.1.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.30.0",
+    "eslint-plugin-jsx-a11y": "^6.10.0",
+    "eslint-plugin-no-unsanitized": "^4.1.0",
+    "eslint-plugin-security": "^3.0.0",
+    "eslint-plugin-sonarjs": "^3.0.0",
+    "picomatch": "^4.0.2"
+  },
+  "devDependencies": {
+    "jscpd": "^4.0.5",
+    "knip": "^5.46.0",
+    "madge": "^8.0.0",
+    "secretlint": "^9.3.0",
+    "@secretlint/secretlint-rule-preset-recommend": "^9.3.0"
+  }
+}

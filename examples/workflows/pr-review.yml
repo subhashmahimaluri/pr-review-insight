@@ -1,0 +1,36 @@
+# Scan every PR and gate the merge on what it introduced.
+name: PR Review Insight
+on:
+  pull_request:
+
+permissions:
+  contents: write # live per-PR overview band (falls back gracefully without it)
+  pull-requests: write # the report comment
+  checks: write # inline annotations
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: subhashmahimaluri/pr-review-insight@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sarif-file: code-report.sarif
+          html-file: code-report.html
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: code-report.sarif
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-report
+          path: |
+            code-report.json
+            code-report.html

@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PR Review Insight — code report</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fff;
+        --fg: #1f2328;
+        --muted: #656d76;
+        --card: #f6f8fa;
+        --border: #d0d7de;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1117;
+          --fg: #e6edf3;
+          --muted: #8b949e;
+          --card: #161b22;
+          --border: #30363d;
+        }
+      }
+      body {
+        font-family:
+          -apple-system,
+          Segoe UI,
+          Helvetica,
+          Arial,
+          sans-serif;
+        margin: 2rem auto;
+        max-width: 1100px;
+        padding: 0 1rem;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      h1 {
+        font-size: 1.4rem;
+      }
+      .policy {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 1rem 0;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 8px;
+        padding: 10px 14px;
+        min-width: 130px;
+      }
+      .card-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .card-count {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .card-meta {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .bad {
+        color: #cf222e;
+      }
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 1rem 0;
+      }
+      .filters button {
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--fg);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
+      .filters button.active {
+        background: #0969da;
+        border-color: #0969da;
+        color: #fff;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 0.85rem;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--border);
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+      }
+      .sev {
+        font-weight: 600;
+        color: var(--c);
+      }
+      .new {
+        background: #cf222e;
+        color: #fff;
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      small {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>❌ Code review gate failed `blocks merge`</h1>
+    <p class="policy">
+      zero new critical · max 5 new major · max duplication 5% · PR #12 · generated
+      2026-06-12T00:00:00.000Z
+    </p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">🪦 Dead code</div>
+        <div class="card-count" style="color: #bc4c00">5</div>
+        <div class="card-meta"><b class="bad">1 new</b> · ▲1</div>
+      </div>
+      <div class="card">
+        <div class="card-label">👯 Duplication</div>
+        <div class="card-count" style="color: #9a6700">1</div>
+        <div class="card-meta"><b class="bad">1 new</b> · ±0</div>
+      </div>
+      <div class="card">
+        <div class="card-label">🌀 Complexity</div>
+        <div class="card-count" style="color: #bc4c00">3</div>
+        <div class="card-meta"><b class="bad">1 new</b> · ▲1</div>
+      </div>
+      <div class="card">
+        <div class="card-label">🧹 Code smells</div>
+        <div class="card-count" style="color: #9a6700">1</div>
+        <div class="card-meta">±0</div>
+      </div>
+      <div class="card">
+        <div class="card-label">🔐 Security &amp; OWASP</div>
+        <div class="card-count" style="color: #cf222e">1</div>
+        <div class="card-meta"><b class="bad">1 new</b> · ▲1</div>
+      </div>
+      <div class="card">
+        <div class="card-label">♿ Accessibility</div>
+        <div class="card-count" style="color: #9a6700">1</div>
+        <div class="card-meta"><b class="bad">1 new</b> · ±0</div>
+      </div>
+      <div class="card">
+        <div class="card-label">🎯 Pentest checks</div>
+        <div class="card-count" style="color: #cf222e">8</div>
+        <div class="card-meta"><b class="bad">2 new</b> · ▲2</div>
+      </div>
+      <div class="card">
+        <div class="card-label">🔄 Architecture</div>
+        <div class="card-count" style="color: #bc4c00">1</div>
+        <div class="card-meta">±0</div>
+      </div>
+    </div>
+    <div class="filters">
+      <button class="active" data-filter="all">All (21)</button>
+      <button data-filter="new">🆕 New (7)</button>
+      <button data-filter="cat:dead-code">🪦 Dead code (5)</button>
+      <button data-filter="cat:duplication">👯 Duplication (1)</button>
+      <button data-filter="cat:complexity">🌀 Complexity (3)</button>
+      <button data-filter="cat:smell">🧹 Code smells (1)</button>
+      <button data-filter="cat:security">🔐 Security &amp; OWASP (1)</button>
+      <button data-filter="cat:a11y">♿ Accessibility (1)</button>
+      <button data-filter="cat:pentest">🎯 Pentest checks (8)</button>
+      <button data-filter="cat:architecture">🔄 Architecture (1)</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Where</th>
+          <th>Category</th>
+          <th>Severity</th>
+          <th>Rule</th>
+          <th>Finding</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-category="pentest" data-severity="critical" data-new="1">
+          <td><code>.env:2</code></td>
+          <td>🎯 Pentest checks</td>
+          <td>
+            <span class="sev" style="--c: #cf222e">critical</span> <span class="new">NEW</span>
+          </td>
+          <td>
+            <code>pentest/public-env-secret</code><br /><small
+              >A07:2021-Identification and Authentication Failures</small
+            >
+          </td>
+          <td>Secret-looking key under a client-exposed env prefix — it ships in the bundle</td>
+        </tr>
+        <tr data-category="security" data-severity="critical" data-new="1">
+          <td><code>src/danger.ts:3</code></td>
+          <td>🔐 Security &amp; OWASP</td>
+          <td>
+            <span class="sev" style="--c: #cf222e">critical</span> <span class="new">NEW</span>
+          </td>
+          <td>
+            <code>security/detect-eval-with-expression</code><br /><small>A03:2021-Injection</small>
+          </td>
+          <td>eval with argument of type Identifier</td>
+        </tr>
+        <tr data-category="complexity" data-severity="major" data-new="1">
+          <td><code>src/index.ts:16</code></td>
+          <td>🌀 Complexity</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span> <span class="new">NEW</span></td>
+          <td><code>sonarjs/cognitive-complexity</code></td>
+          <td>
+            Refactor this function to reduce its Cognitive Complexity from 43 to the 15 allowed.
+          </td>
+        </tr>
+        <tr data-category="dead-code" data-severity="minor" data-new="1">
+          <td><code>package.json</code></td>
+          <td>🪦 Dead code</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span> <span class="new">NEW</span></td>
+          <td><code>knip/unused-dependency</code></td>
+          <td>Unused dependency `left-pad`<br /><small>left-pad</small></td>
+        </tr>
+        <tr data-category="a11y" data-severity="minor" data-new="1">
+          <td><code>src/Component.tsx:4</code></td>
+          <td>♿ Accessibility</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span> <span class="new">NEW</span></td>
+          <td><code>jsx-a11y/alt-text</code></td>
+          <td>
+            img elements must have an alt prop, either with meaningful text, or an empty string for
+            decorative images.
+          </td>
+        </tr>
+        <tr data-category="pentest" data-severity="minor" data-new="1">
+          <td><code>src/danger.ts:5</code></td>
+          <td>🎯 Pentest checks</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span> <span class="new">NEW</span></td>
+          <td>
+            <code>pentest/cleartext-http</code><br /><small>A02:2021-Cryptographic Failures</small>
+          </td>
+          <td>Cleartext `http://` URL — use https</td>
+        </tr>
+        <tr data-category="duplication" data-severity="minor" data-new="1">
+          <td><code>src/invoices.ts:3</code></td>
+          <td>👯 Duplication</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span> <span class="new">NEW</span></td>
+          <td><code>jscpd/duplication</code></td>
+          <td>
+            20 duplicated lines, also at src/orders.ts:3–22<br /><small>src/orders.ts#L3-L22</small>
+          </td>
+        </tr>
+        <tr data-category="architecture" data-severity="major" data-new="0">
+          <td><code>src/a.ts</code></td>
+          <td>🔄 Architecture</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td><code>madge/circular-dependency</code></td>
+          <td>
+            Circular dependency: src/a.ts → src/b.ts → src/a.ts<br /><small
+              >2 modules in cycle</small
+            >
+          </td>
+        </tr>
+        <tr data-category="dead-code" data-severity="major" data-new="0">
+          <td><code>src/Component.tsx</code></td>
+          <td>🪦 Dead code</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td><code>knip/unused-file</code></td>
+          <td>File is never imported<br /><small>src/Component.tsx</small></td>
+        </tr>
+        <tr data-category="pentest" data-severity="major" data-new="0">
+          <td><code>src/Component.tsx:5</code></td>
+          <td>🎯 Pentest checks</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td>
+            <code>pentest/dangerously-set-inner-html</code><br /><small>A03:2021-Injection</small>
+          </td>
+          <td>`dangerouslySetInnerHTML` — XSS sink, sanitize or remove</td>
+        </tr>
+        <tr data-category="pentest" data-severity="major" data-new="0">
+          <td><code>src/danger.ts:4</code></td>
+          <td>🎯 Pentest checks</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td><code>pentest/new-function</code><br /><small>A03:2021-Injection</small></td>
+          <td>`new Function()` — dynamic code execution</td>
+        </tr>
+        <tr data-category="pentest" data-severity="major" data-new="0">
+          <td><code>src/danger.ts:10</code></td>
+          <td>🎯 Pentest checks</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td>
+            <code>pentest/open-redirect</code><br /><small>A01:2021-Broken Access Control</small>
+          </td>
+          <td>Possible open redirect from user-controlled input</td>
+        </tr>
+        <tr data-category="complexity" data-severity="major" data-new="0">
+          <td><code>src/index.ts:23</code></td>
+          <td>🌀 Complexity</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td><code>max-depth</code></td>
+          <td>Blocks are nested too deeply (6). Maximum allowed is 5.</td>
+        </tr>
+        <tr data-category="complexity" data-severity="major" data-new="0">
+          <td><code>src/index.ts:24</code></td>
+          <td>🌀 Complexity</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td><code>max-depth</code></td>
+          <td>Blocks are nested too deeply (7). Maximum allowed is 5.</td>
+        </tr>
+        <tr data-category="dead-code" data-severity="major" data-new="0">
+          <td><code>src/unused.ts</code></td>
+          <td>🪦 Dead code</td>
+          <td><span class="sev" style="--c: #bc4c00">major</span></td>
+          <td><code>knip/unused-file</code></td>
+          <td>File is never imported<br /><small>src/unused.ts</small></td>
+        </tr>
+        <tr data-category="pentest" data-severity="minor" data-new="0">
+          <td><code>index.html:8</code></td>
+          <td>🎯 Pentest checks</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span></td>
+          <td>
+            <code>pentest/target-blank-no-rel</code><br /><small>A04:2021-Insecure Design</small>
+          </td>
+          <td>
+            `target=&quot;_blank&quot;` without `rel=&quot;noopener&quot;` — reverse tabnabbing
+          </td>
+        </tr>
+        <tr data-category="pentest" data-severity="minor" data-new="0">
+          <td><code>src/Component.tsx:6</code></td>
+          <td>🎯 Pentest checks</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span></td>
+          <td>
+            <code>pentest/target-blank-no-rel</code><br /><small>A04:2021-Insecure Design</small>
+          </td>
+          <td>
+            `target=&quot;_blank&quot;` without `rel=&quot;noopener&quot;` — reverse tabnabbing
+          </td>
+        </tr>
+        <tr data-category="smell" data-severity="minor" data-new="0">
+          <td><code>src/danger.ts:3</code></td>
+          <td>🧹 Code smells</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span></td>
+          <td><code>sonarjs/code-eval</code></td>
+          <td>Make sure that this dynamic injection or execution of code is safe.</td>
+        </tr>
+        <tr data-category="dead-code" data-severity="minor" data-new="0">
+          <td><code>src/danger.ts:9</code></td>
+          <td>🪦 Dead code</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span></td>
+          <td><code>knip/unused-export</code></td>
+          <td>Unused export `redirect`<br /><small>redirect</small></td>
+        </tr>
+        <tr data-category="dead-code" data-severity="minor" data-new="0">
+          <td><code>src/util.ts:5</code></td>
+          <td>🪦 Dead code</td>
+          <td><span class="sev" style="--c: #9a6700">minor</span></td>
+          <td><code>knip/unused-export</code></td>
+          <td>Unused export `neverCalled`<br /><small>neverCalled</small></td>
+        </tr>
+        <tr data-category="pentest" data-severity="info" data-new="0">
+          <td><code>index.html</code></td>
+          <td>🎯 Pentest checks</td>
+          <td><span class="sev" style="--c: #656d76">info</span></td>
+          <td>
+            <code>pentest/missing-csp</code><br /><small>A05:2021-Security Misconfiguration</small>
+          </td>
+          <td>No Content-Security-Policy meta tag — consider adding one (or set the header)</td>
+        </tr>
+      </tbody>
+    </table>
+    <script>
+      document.querySelectorAll('.filters button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.filters button').forEach(function (b) {
+            b.classList.remove('active');
+          });
+          btn.classList.add('active');
+          var filter = btn.getAttribute('data-filter');
+          document.querySelectorAll('tbody tr').forEach(function (row) {
+            var show =
+              filter === 'all' ||
+              (filter === 'new' && row.getAttribute('data-new') === '1') ||
+              (filter.indexOf('cat:') === 0 &&
+                row.getAttribute('data-category') === filter.slice(4));
+            row.style.display = show ? '' : 'none';
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

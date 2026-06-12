@@ -1,0 +1,72 @@
+name: 'PR Review Insight — PR quality, security & a11y gate'
+description: >-
+  Scan the PR for dead code, duplication, complexity, security, OWASP, a11y,
+  pentest hygiene and Sonar-style smells. One premium PR comment — graphs on
+  top, details collapsed — and a merge gate on what the PR introduced.
+author: 'subhashmahimaluri'
+branding:
+  icon: 'shield'
+  color: 'purple'
+
+inputs:
+  github-token:
+    description: 'GitHub token (use secrets.GITHUB_TOKEN)'
+    required: true
+  mode:
+    description: '`report` (PR scan + comment) or `baseline` (record default-branch baseline)'
+    required: false
+    default: 'report'
+  baseline-branch:
+    description: 'Orphan branch holding baselines, history and band SVGs'
+    required: false
+    default: 'pr-review-insight-baseline'
+  gates:
+    description: >-
+      JSON overriding the config file `gates` key, e.g.
+      {"newFindings":{"critical":0,"major":5},"duplication":{"maxPercent":5}}
+    required: false
+  ignore:
+    description: 'Extra ignore globs (comma or newline separated)'
+    required: false
+  strict:
+    description: 'A scanner crash fails the job (default: degrade to a warning)'
+    required: false
+    default: 'false'
+  comment:
+    description: 'Post/update the PR comment'
+    required: false
+    default: 'true'
+  check-run:
+    description: 'Post a check run with inline annotations'
+    required: false
+    default: 'true'
+  annotations:
+    description: 'Inline annotations on touched lines: `new`, `all` or `none`'
+    required: false
+    default: 'new'
+  report-file:
+    description: 'Path for the versioned JSON report artifact'
+    required: false
+    default: 'code-report.json'
+  sarif-file:
+    description: 'Also emit SARIF here (upload with github/codeql-action/upload-sarif)'
+    required: false
+  html-file:
+    description: 'Also emit a self-contained interactive HTML report here'
+    required: false
+
+outputs:
+  state:
+    description: 'Report state (passed | gate-failed | new-findings | improved | no-change | no-baseline | invalid-data | scan-error)'
+  verdict:
+    description: 'Gate verdict (pass | warn | fail)'
+  total-findings:
+    description: 'Total findings in the scan'
+  new-findings:
+    description: 'Findings introduced by this PR'
+  report-file:
+    description: 'Path of the JSON report artifact'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

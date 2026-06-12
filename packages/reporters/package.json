@@ -1,0 +1,14 @@
+{
+  "name": "@pr-review-insight/reporters",
+  "version": "0.1.0",
+  "description": "Markdown comment, SARIF, HTML artifact and JSON report builders for PR Review Insight",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@pr-review-insight/core": "0.1.0"
+  }
+}

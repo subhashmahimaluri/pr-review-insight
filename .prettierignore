@@ -1,0 +1,6 @@
+dist
+coverage
+node_modules
+vite-pr-coverage-insight-reference
+package-lock.json
+CHANGELOG.md

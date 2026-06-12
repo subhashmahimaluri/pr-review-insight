@@ -1,0 +1,24 @@
+{
+  "name": "@pr-review-insight/cli",
+  "version": "0.1.0",
+  "description": "pri — scan, gate and report from the command line (GitLab, Jenkins, local)",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "bin": {
+    "pri": "bin/pri.js"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@pr-review-insight/core": "0.1.0",
+    "@pr-review-insight/history": "0.1.0",
+    "@pr-review-insight/reporters": "0.1.0",
+    "@pr-review-insight/scanners": "0.1.0",
+    "jscpd": "^4.0.5",
+    "knip": "^5.46.0",
+    "madge": "^8.0.0",
+    "secretlint": "^9.3.0",
+    "@secretlint/secretlint-rule-preset-recommend": "^9.3.0"
+  }
+}

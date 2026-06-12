@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/scanners" },
+    { "path": "packages/reporters" },
+    { "path": "packages/history" },
+    { "path": "packages/action" },
+    { "path": "packages/cli" }
+  ]
+}
