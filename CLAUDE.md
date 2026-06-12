@@ -24,7 +24,17 @@ node packages/cli/bin/pri.js scan --dir fixtures/demo-app --report /tmp/code-rep
 
 # regenerate docs/gallery (all 8 comment states + band SVGs) from the last fixture scan
 npx tsx scripts/gallery.ts
+
+# mutation testing (Stryker, packages/core) — nightly in CI, minutes locally
+npm run test:mutation
 ```
+
+Test-strength layers (docs/test-strength-plan.md): fast-check **property
+tests** (`packages/*/test/properties.test.ts`) pin invariants — gate
+monotonicity, fingerprint whitespace-invariance, the 65k truncation budget;
+the **fuzz suite** (`packages/scanners/test/fuzz.test.ts`) requires every
+`parseX()` to return an array for ANY valid-JSON input — keep new parser code
+routed through `src/coerce.ts` helpers or the fuzzer will fail.
 
 Before declaring any change done, the **verification trio** must pass:
 

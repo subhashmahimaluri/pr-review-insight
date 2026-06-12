@@ -1,4 +1,5 @@
 import { Finding, fingerprint } from '@pr-review-insight/core';
+import { asArray, asString, isObject } from '../coerce';
 import { relativize } from '../snippet';
 import { ScanContext, ScannerAdapter, ScannerOutcome } from '../types';
 import { resolveTool, stripAnsi } from '../exec';
@@ -17,7 +18,23 @@ type KnipIssue = {
 type KnipJson = { files?: string[]; issues?: KnipIssue[] };
 
 function symbolName(s: KnipSymbol | string): string {
-  return typeof s === 'string' ? s : s.name;
+  return typeof s === 'string' ? s : asString(s.name, 'unknown');
+}
+
+/**
+ * Normalize knip symbol entries to {name, line?} objects; drop anything that
+ * is neither a name string nor a {name} object (fuzz-hardening).
+ */
+function normalizeSymbols(value: unknown): KnipSymbol[] {
+  return asArray(value)
+    .map((entry) => (typeof entry === 'string' ? { name: entry } : entry))
+    .filter((entry): entry is KnipSymbol => isObject(entry) && typeof entry.name === 'string')
+    .map((entry) => ({
+      name: entry.name,
+      ...(typeof entry.line === 'number' && Number.isFinite(entry.line)
+        ? { line: entry.line }
+        : {}),
+    }));
 }
 
 function deadCodeFinding(
@@ -42,21 +59,25 @@ function deadCodeFinding(
   };
 }
 
-/** pure parser over `knip --reporter json` output — unit-testable */
+/** pure parser over `knip --reporter json` output — fuzz-hardened, unit-testable */
 export function parseKnipJson(raw: string, cwd: string): Finding[] {
-  const data = JSON.parse(raw) as KnipJson;
+  const parsed: unknown = JSON.parse(raw);
+  const data = (isObject(parsed) ? parsed : {}) as KnipJson;
   const findings: Finding[] = [];
 
-  for (const file of data.files ?? []) {
+  for (const file of asArray(data.files)) {
+    if (typeof file !== 'string') continue;
     const rel = relativize(cwd, file);
     findings.push(
       deadCodeFinding(rel, 'knip/unused-file', 'File is never imported', 'entire file', 'major')
     );
   }
 
-  for (const issue of data.issues ?? []) {
-    const rel = relativize(cwd, issue.file);
-    for (const exp of issue.exports ?? []) {
+  for (const rawIssue of asArray(data.issues)) {
+    if (!isObject(rawIssue)) continue;
+    const issue = rawIssue as unknown as KnipIssue;
+    const rel = relativize(cwd, asString(issue.file, 'unknown'));
+    for (const exp of normalizeSymbols(issue.exports)) {
       findings.push(
         deadCodeFinding(
           rel,
@@ -68,7 +89,7 @@ export function parseKnipJson(raw: string, cwd: string): Finding[] {
         )
       );
     }
-    for (const type of issue.types ?? []) {
+    for (const type of normalizeSymbols(issue.types)) {
       findings.push(
         deadCodeFinding(
           rel,
@@ -80,7 +101,7 @@ export function parseKnipJson(raw: string, cwd: string): Finding[] {
         )
       );
     }
-    for (const dep of issue.dependencies ?? []) {
+    for (const dep of normalizeSymbols(issue.dependencies)) {
       findings.push(
         deadCodeFinding(
           rel,
@@ -91,7 +112,7 @@ export function parseKnipJson(raw: string, cwd: string): Finding[] {
         )
       );
     }
-    for (const dep of issue.devDependencies ?? []) {
+    for (const dep of normalizeSymbols(issue.devDependencies)) {
       findings.push(
         deadCodeFinding(
           rel,

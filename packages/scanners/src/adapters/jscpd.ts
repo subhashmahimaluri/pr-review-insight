@@ -2,6 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Finding, fingerprint } from '@pr-review-insight/core';
+import { asArray, asFiniteNumber, isObject } from '../coerce';
 import { relativize } from '../snippet';
 import { ScanContext, ScannerAdapter, ScannerOutcome } from '../types';
 import { resolveTool, stripAnsi } from '../exec';
@@ -25,16 +26,30 @@ export type JscpdReport = {
   duplicates?: JscpdDuplicate[];
 };
 
-/** pure parser over jscpd-report.json — unit-testable */
+/** is this a usable clone side? (fuzz-hardening: name + numeric range required) */
+function isSide(value: unknown): value is JscpdSide {
+  return (
+    isObject(value) &&
+    typeof value.name === 'string' &&
+    typeof value.start === 'number' &&
+    typeof value.end === 'number'
+  );
+}
+
+/** pure parser over jscpd-report.json — fuzz-hardened, unit-testable */
 export function parseJscpdReport(
   report: JscpdReport,
   cwd: string
 ): { findings: Finding[]; duplicationPercent?: number } {
   const findings: Finding[] = [];
-  for (const dup of report.duplicates ?? []) {
+  const duplicates = isObject(report) ? asArray(report.duplicates) : [];
+  for (const rawDup of duplicates) {
+    if (!isObject(rawDup) || !isSide(rawDup.firstFile) || !isSide(rawDup.secondFile)) continue;
+    const dup = rawDup as unknown as JscpdDuplicate;
     const fileA = relativize(cwd, dup.firstFile.name);
     const fileB = relativize(cwd, dup.secondFile.name);
-    const lines = dup.lines ?? dup.firstFile.end - dup.firstFile.start + 1;
+    const lines =
+      asFiniteNumber(dup.lines) ?? Math.max(1, dup.firstFile.end - dup.firstFile.start + 1);
     const ruleId = 'jscpd/duplication';
     findings.push({
       category: 'duplication',
@@ -55,7 +70,14 @@ export function parseJscpdReport(
   }
   return {
     findings,
-    duplicationPercent: report.statistics?.total?.percentage,
+    duplicationPercent: isObject(report)
+      ? asFiniteNumber(
+          (isObject(report.statistics) && isObject(report.statistics.total)
+            ? report.statistics.total
+            : {}
+          ).percentage
+        )
+      : undefined,
   };
 }
 

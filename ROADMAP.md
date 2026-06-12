@@ -43,20 +43,30 @@ dependencies
 
 ### Planned gates (priority order)
 
-| Gate                     | Scanner (npm)                                           | Why it matters                             | Diff-aware shape                                      |
-| ------------------------ | ------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------- |
-| 🔡 Type coverage         | `type-coverage`                                         | `any` leakage is the TS equivalent of debt | fail only when the PR lowers the %                    |
-| 📜 License compliance    | `license-checker-rseidelsohn`                           | legal risk hides in transitive deps        | fail on newly introduced disallowed licenses          |
-| 🕰️ Outdated dependencies | `npm outdated --json`                                   | aging deps correlate with CVEs             | report-only column next to 📦 deps                    |
-| 📏 Bundle-size budget    | `size-limit` (when a build exists)                      | regressions land one PR at a time          | fail when the PR grows the bundle past budget         |
-| 🧮 PR size advisory      | git diff stats (no dep)                                 | 2000-line PRs defeat review                | warn-only chip in the header                          |
-| ♿ Runtime a11y          | `axe-core` + `linkedom` against built `dist/index.html` | static JSX checks miss rendered DOM issues | new violations only                                   |
-| 🧪 Test hygiene          | `eslint-plugin-vitest`/`jest` rules                     | `.only`, disabled tests, empty assertions  | gate on new                                           |
-| 🐳 Dockerfile/IaC lint   | TBD — no good pure-npm option yet                       | container misconfig                        | ingest external SARIF (same pattern as `dast-report`) |
+| Gate                     | Scanner (npm)                                           | Why it matters                                                  | Diff-aware shape                                      |
+| ------------------------ | ------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------- |
+| 🔡 Type coverage         | `type-coverage`                                         | `any` leakage is the TS equivalent of debt                      | fail only when the PR lowers the %                    |
+| 📜 License compliance    | `license-checker-rseidelsohn`                           | legal risk hides in transitive deps                             | fail on newly introduced disallowed licenses          |
+| 🕰️ Outdated dependencies | `npm outdated --json`                                   | aging deps correlate with CVEs                                  | report-only column next to 📦 deps                    |
+| 📏 Bundle-size budget    | `size-limit` (when a build exists)                      | regressions land one PR at a time                               | fail when the PR grows the bundle past budget         |
+| 🧮 PR size advisory      | git diff stats (no dep)                                 | 2000-line PRs defeat review                                     | warn-only chip in the header                          |
+| ♿ Runtime a11y          | `axe-core` + `linkedom` against built `dist/index.html` | static JSX checks miss rendered DOM issues                      | new violations only                                   |
+| 🧪 Test hygiene          | `eslint-plugin-vitest`/`jest` rules                     | `.only`, disabled tests, empty assertions                       | gate on new                                           |
+| 🧬 Test strength         | ingest Stryker `mutation-report.json`                   | coverage measures execution, mutation score measures assertions | fail on surviving mutants in changed files only       |
+| 🐳 Dockerfile/IaC lint   | TBD — no good pure-npm option yet                       | container misconfig                                             | ingest external SARIF (same pattern as `dast-report`) |
 
 Also planned: **ratchet mode** (`"ratchet": true` — totals may never increase,
 the SonarQube "clean as you code" hard line) and per-category severity
 overrides.
+
+### Test strength — applied to ourselves first ✅
+
+See [docs/test-strength-plan.md](docs/test-strength-plan.md): the repo now
+dogfoods the techniques the 🧬 gate will ship — fast-check **property tests**
+(gate monotonicity, fingerprint whitespace-invariance, truncation budget),
+**parser fuzzing** (all five external-tool parsers hardened against arbitrary
+JSON; the fuzzer found real crashes on day one), and **Stryker mutation
+testing** (`npm run test:mutation`, nightly CI with incremental state).
 
 ## Phase 9 — Platform & scale
 

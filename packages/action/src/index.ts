@@ -323,9 +323,10 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
   let artifactsUrl: string | undefined;
   if (inputs.uploadArtifact) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { DefaultArtifactClient } =
+      const artifactModule =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('@actions/artifact') as typeof import('@actions/artifact');
+      const { DefaultArtifactClient } = artifactModule;
       const client = new DefaultArtifactClient();
       const files = [inputs.reportFile, inputs.htmlFile, inputs.fixPlanFile, inputs.sarifFile]
         .filter(Boolean)

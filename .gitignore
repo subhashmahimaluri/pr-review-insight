@@ -2,6 +2,8 @@ node_modules/
 coverage/
 *.tsbuildinfo
 .DS_Store
+.stryker-tmp/
+reports/
 
 # per-package build output (the action ships only the root dist/ ncc bundle)
 packages/*/dist/

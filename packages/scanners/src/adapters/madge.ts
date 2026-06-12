@@ -1,4 +1,5 @@
 import { Finding, fingerprint } from '@pr-review-insight/core';
+import { asArray } from '../coerce';
 import { ScanContext, ScannerAdapter, ScannerOutcome } from '../types';
 import { resolveTool, stripAnsi } from '../exec';
 
@@ -9,8 +10,13 @@ export const MADGE_NPX_SPEC = 'madge@8';
  * each an array of module paths) — unit-testable.
  */
 export function parseMadgeCircularJson(raw: string): Finding[] {
-  const cycles = JSON.parse(raw) as string[][];
+  const parsed: unknown = JSON.parse(raw);
   const ruleId = 'madge/circular-dependency';
+  // fuzz-hardened: keep only arrays of strings — anything else is not a cycle
+  const cycles = asArray(parsed)
+    .filter((c): c is unknown[] => Array.isArray(c))
+    .map((c) => c.filter((m): m is string => typeof m === 'string'))
+    .filter((c) => c.length > 0);
   return cycles.map((cycle) => {
     // normalize rotation so the same cycle always fingerprints identically
     const sorted = [...cycle].sort();

@@ -1,4 +1,5 @@
 import { Finding, fingerprint } from '@pr-review-insight/core';
+import { asArray, asFiniteNumber, asString, isObject } from '../coerce';
 import { OWASP } from '../owasp';
 import { relativize } from '../snippet';
 import { ScanContext, ScannerAdapter, ScannerOutcome } from '../types';
@@ -13,27 +14,33 @@ type SecretlintMessage = {
 };
 type SecretlintFileResult = { filePath: string; messages: SecretlintMessage[] };
 
-/** pure parser over `secretlint --format json` output — unit-testable */
+/** pure parser over `secretlint --format json` output — fuzz-hardened, unit-testable */
 export function parseSecretlintJson(raw: string, cwd: string): Finding[] {
-  const results = JSON.parse(raw) as SecretlintFileResult[];
+  const parsed: unknown = JSON.parse(raw);
   const findings: Finding[] = [];
-  for (const result of results) {
-    const file = relativize(cwd, result.filePath);
-    for (const message of result.messages ?? []) {
-      const ruleId = `secretlint/${(message.ruleId ?? 'secret').replace(/^@secretlint\//, '')}`;
-      const start = message.loc?.start?.line;
+  for (const rawResult of asArray(parsed)) {
+    if (!isObject(rawResult)) continue;
+    const result = rawResult as SecretlintFileResult;
+    const file = relativize(cwd, asString(result.filePath, 'unknown'));
+    for (const rawMessage of asArray(result.messages)) {
+      if (!isObject(rawMessage)) continue;
+      const message = rawMessage as SecretlintMessage;
+      const ruleId = `secretlint/${asString(message.ruleId, 'secret').replace(/^@secretlint\//, '')}`;
+      const start = asFiniteNumber(message.loc?.start?.line);
       findings.push({
         category: 'security',
         ruleId,
         severity: 'critical',
         owasp: OWASP.A07,
         file,
-        range: start ? { start, end: message.loc?.end?.line ?? start } : undefined,
+        range: start ? { start, end: asFiniteNumber(message.loc?.end?.line) ?? start } : undefined,
         // never echo the secret itself into the report
         message: 'Possible committed secret detected',
         detail:
-          message.message.length > 120 ? `${message.message.slice(0, 117)}…` : message.message,
-        fingerprint: fingerprint({ ruleId, file, message: `${file}:${message.ruleId}` }),
+          asString(message.message).length > 120
+            ? `${asString(message.message).slice(0, 117)}…`
+            : asString(message.message),
+        fingerprint: fingerprint({ ruleId, file, message: `${file}:${asString(message.ruleId)}` }),
       });
     }
   }

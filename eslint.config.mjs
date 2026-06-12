@@ -10,6 +10,8 @@ export default tseslint.config(
       '**/node_modules/**',
       'vite-pr-coverage-insight-reference/**',
       'fixtures/**',
+      '.stryker-tmp/**',
+      'reports/**',
     ],
   },
   js.configs.recommended,

@@ -1,4 +1,5 @@
 import { Finding, Severity, fingerprint } from '@pr-review-insight/core';
+import { asArray, asString, isObject } from '../coerce';
 import { OWASP } from '../owasp';
 import { ScanContext, ScannerAdapter, ScannerOutcome } from '../types';
 import { stripAnsi } from '../exec';
@@ -25,22 +26,24 @@ const SEVERITY_MAP: Record<string, Severity> = {
   critical: 'critical',
 };
 
-/** pure parser over `npm audit --json` output — unit-testable */
+/** pure parser over `npm audit --json` output — fuzz-hardened, unit-testable */
 export function parseNpmAuditJson(raw: string): Finding[] {
-  const data = JSON.parse(raw) as AuditJson;
+  const parsed: unknown = JSON.parse(raw);
+  const data = (isObject(parsed) ? parsed : {}) as AuditJson;
   const findings: Finding[] = [];
-  for (const [name, vuln] of Object.entries(data.vulnerabilities ?? {})) {
-    const severity = SEVERITY_MAP[vuln.severity ?? ''] ?? 'major';
-    const advisory = (vuln.via ?? []).find(
-      (v): v is Exclude<AuditVia, string> => typeof v === 'object'
-    );
-    const title = advisory?.title ?? `Known vulnerability in \`${name}\``;
+  const vulnerabilities = isObject(data.vulnerabilities) ? data.vulnerabilities : {};
+  for (const [name, rawVuln] of Object.entries(vulnerabilities)) {
+    if (!isObject(rawVuln)) continue;
+    const vuln = rawVuln as AuditVulnerability;
+    const severity = SEVERITY_MAP[asString(vuln.severity)] ?? 'major';
+    const advisory = asArray(vuln.via).find((v): v is Exclude<AuditVia, string> => isObject(v));
+    const title = asString(advisory?.title) || `Known vulnerability in \`${name}\``;
     const ruleId = 'audit/vulnerable-dependency';
     const fix =
       vuln.fixAvailable === true
         ? ' (fix available via `npm audit fix`)'
-        : typeof vuln.fixAvailable === 'object'
-          ? ` (fixed in ${vuln.fixAvailable.name}@${vuln.fixAvailable.version})`
+        : isObject(vuln.fixAvailable)
+          ? ` (fixed in ${asString(vuln.fixAvailable.name, '?')}@${asString(vuln.fixAvailable.version, '?')})`
           : '';
     findings.push({
       category: 'deps',
@@ -48,8 +51,8 @@ export function parseNpmAuditJson(raw: string): Finding[] {
       severity,
       owasp: OWASP.A06,
       file: 'package.json',
-      message: `\`${name}\` ${vuln.range ?? ''}: ${title}${fix}`.replace(/\s+/g, ' ').trim(),
-      detail: advisory?.url,
+      message: `\`${name}\` ${asString(vuln.range)}: ${title}${fix}`.replace(/\s+/g, ' ').trim(),
+      detail: asString(advisory?.url) || undefined,
       fingerprint: fingerprint({ ruleId, file: 'package.json', message: `${name}:${title}` }),
     });
   }
