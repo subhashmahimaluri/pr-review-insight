@@ -25,7 +25,7 @@ jobs:
           key: stryker-incremental-${{ github.sha }}
           restore-keys: stryker-incremental-
       - run: npm run test:mutation
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: mutation-report
