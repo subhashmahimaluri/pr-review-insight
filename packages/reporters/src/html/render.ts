@@ -97,6 +97,13 @@ th{position:sticky;top:0;background:var(--bg)}
 .sev{font-weight:600;color:var(--c)}
 .new{background:#cf222e;color:#fff;border-radius:4px;padding:1px 5px;font-size:.7rem;font-weight:700}
 small{color:var(--muted)}
+@media print{
+  :root{color-scheme:light;--bg:#fff;--fg:#000;--muted:#444;--card:#f3f3f3;--border:#bbb}
+  .filters{display:none}
+  tbody tr{display:table-row !important;break-inside:avoid}
+  body{margin:0;max-width:none;font-size:11px}
+  th{position:static}
+}
 </style>
 </head>
 <body>

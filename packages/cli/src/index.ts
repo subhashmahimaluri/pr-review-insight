@@ -9,7 +9,12 @@ import {
   ReviewReport,
 } from '@pr-review-insight/core';
 import { realExec, runScanners } from '@pr-review-insight/scanners';
-import { renderHtml, renderMarkdown, renderSarif } from '@pr-review-insight/reporters';
+import {
+  renderFixPlan,
+  renderHtml,
+  renderMarkdown,
+  renderSarif,
+} from '@pr-review-insight/reporters';
 import { BaselineEntry, emptyCounts } from '@pr-review-insight/history';
 
 /** exit codes: 0 = pass, 1 = gate failed, 2 = crash/invalid */
@@ -17,7 +22,8 @@ const USAGE = `pri — PR Review Insight CLI
 
 Usage:
   pri scan   [--dir <path>] [--report <file>] [--sarif <file>] [--html <file>]
-             [--md <file>] [--baseline <baseline.json>] [--base-dir <path>] [--strict]
+             [--md <file>] [--fix-plan <file>] [--baseline <baseline.json>]
+             [--base-dir <path>] [--strict]
   pri gate   [--report <file>]
   pri report [--report <file>] [--md <file>] [--html <file>]
 
@@ -122,6 +128,8 @@ async function scan(flags: Map<string, string | boolean>): Promise<number> {
   if (typeof htmlFile === 'string') writeFileSync(htmlFile, renderHtml(report));
   const mdFile = flags.get('md');
   if (typeof mdFile === 'string') writeFileSync(mdFile, renderMarkdown(report));
+  const fixPlanFile = flags.get('fix-plan');
+  if (typeof fixPlanFile === 'string') writeFileSync(fixPlanFile, renderFixPlan(report));
 
   return exitCodeFor(report);
 }

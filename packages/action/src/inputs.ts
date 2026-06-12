@@ -20,6 +20,7 @@ export type ActionInputs = {
   reportFile: string;
   sarifFile: string;
   htmlFile: string;
+  fixPlanFile: string;
 };
 
 export function readInputs(): ActionInputs {
@@ -54,5 +55,6 @@ export function readInputs(): ActionInputs {
     reportFile: getInput('report-file') || 'code-report.json',
     sarifFile: getInput('sarif-file') || '',
     htmlFile: getInput('html-file') || '',
+    fixPlanFile: getInput('fix-plan-file') || '',
   };
 }

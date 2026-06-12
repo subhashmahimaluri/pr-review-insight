@@ -13,7 +13,13 @@ import {
   ReviewReport,
 } from '@pr-review-insight/core';
 import { realExec, runScanners } from '@pr-review-insight/scanners';
-import { renderHtml, renderMarkdown, renderSarif, HEADERS } from '@pr-review-insight/reporters';
+import {
+  renderFixPlan,
+  renderHtml,
+  renderMarkdown,
+  renderSarif,
+  HEADERS,
+} from '@pr-review-insight/reporters';
 import {
   BaselineEntry,
   GateCardInfo,
@@ -254,6 +260,9 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
   if (inputs.htmlFile) {
     writeFileSync(join(cwd, inputs.htmlFile), renderHtml(report));
   }
+  if (inputs.fixPlanFile) {
+    writeFileSync(join(cwd, inputs.fixPlanFile), renderFixPlan(report));
+  }
 
   // live per-PR band needs contents: write; otherwise fall back to the
   // base-branch band and say so in the caption (never headline base data as
@@ -281,9 +290,12 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
           content: renderOverviewBandSvg(report.categories ?? [], prSeries, theme, { gate }),
         })),
       });
+      // bust GitHub's camo image cache per RUN, not per commit — re-runs on
+      // the same sha would otherwise serve a stale band forever
+      const cacheBust = `${pr.head.sha.slice(0, 7)}-${context.runId}`;
       bandImages = {
-        light: `${rawBase}/${prOverviewBandPath(pr.number, 'light')}?sha=${pr.head.sha.slice(0, 7)}`,
-        dark: `${rawBase}/${prOverviewBandPath(pr.number, 'dark')}?sha=${pr.head.sha.slice(0, 7)}`,
+        light: `${rawBase}/${prOverviewBandPath(pr.number, 'light')}?v=${cacheBust}`,
+        dark: `${rawBase}/${prOverviewBandPath(pr.number, 'dark')}?v=${cacheBust}`,
       };
       const baseLabel = baseline
         ? baseline.meta.source === 'scan'

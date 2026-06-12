@@ -18,5 +18,6 @@ export type ActionInputs = {
     reportFile: string;
     sarifFile: string;
     htmlFile: string;
+    fixPlanFile: string;
 };
 export declare function readInputs(): ActionInputs;

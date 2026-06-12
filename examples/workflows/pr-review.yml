@@ -25,6 +25,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           sarif-file: code-report.sarif
           html-file: code-report.html
+          fix-plan-file: fix-plan.md
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
@@ -36,3 +37,4 @@ jobs:
           path: |
             code-report.json
             code-report.html
+            fix-plan.md

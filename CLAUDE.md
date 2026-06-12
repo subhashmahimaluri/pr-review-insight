@@ -92,6 +92,12 @@ The CLI equivalent is `pri scan --base-dir <base-checkout>`.
   absolute, cwd-relative, or output-dir-relative, plus macOS /tmp →
   /private/tmp realpath aliasing — wrong relative paths silently break
   fingerprint matching across base/head scans (false 🆕).
+- Band image URLs must be cache-busted per RUN (`?v=<sha>-<runId>`), not per
+  commit — GitHub's camo proxy caches by exact URL, so re-runs on the same
+  sha would show a stale band forever.
+- The fix plan (`renderFixPlan`, `fix-plan-file` input, `--fix-plan` flag) is
+  the AI-assist surface: prompts, not API calls (no keys, Copilot-ready).
+  Keep new-findings-first and the non-blocking framing for pre-existing debt.
 
 - **Fingerprints** = ruleId + file + normalized snippet (NO line numbers), so
   findings survive unrelated edits. Symbol-identity for knip,
