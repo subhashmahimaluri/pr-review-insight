@@ -23,6 +23,6 @@
     "knip": "^5.46.0",
     "madge": "^8.0.0",
     "secretlint": "^9.3.0",
-    "@secretlint/secretlint-rule-preset-recommend": "^9.3.0"
+    "@secretlint/secretlint-rule-preset-recommend": "^13.0.2"
   }
 }
