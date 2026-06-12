@@ -8,6 +8,7 @@ import {
   SEVERITY_RANK,
   Severity,
 } from '@pr-review-insight/core';
+import { buildFixPrompt } from '../fixplan/render';
 
 export const COMMENT_MARKER = '<!-- pr-review-insight -->';
 
@@ -52,6 +53,8 @@ export type RenderMarkdownOptions = {
   bandImages?: { light: string; dark: string };
   /** what the band actually shows — never headline base data as the PR's */
   bandCaption?: string;
+  /** the run's artifacts page — renders a download link in the footer */
+  artifactsUrl?: string;
 };
 
 type Section = {
@@ -348,6 +351,34 @@ function allFindingsByFile(report: ReviewReport): string {
 }
 
 const INTRODUCED_ROW_CAP = 15;
+const FIX_PROMPT_CAP = 10;
+
+/**
+ * Per-finding paste-ready prompts (roadmap 7.3) — copy into Copilot Chat /
+ * any AI assistant with the file open. Nested + collapsed inside the
+ * introduced section; no API, no integration surface.
+ */
+function fixPromptsBlock(report: ReviewReport, fresh: Finding[]): string {
+  const prompts = sortFindings(fresh).slice(0, FIX_PROMPT_CAP);
+  const blocks = prompts.map((f) =>
+    [`**${fileLink(report, f)}** — \`${f.ruleId}\``, '', buildFixPrompt(f)].join('\n')
+  );
+  const more =
+    fresh.length > FIX_PROMPT_CAP
+      ? `\n\n_…and ${fresh.length - FIX_PROMPT_CAP} more in the fix-plan artifact._`
+      : '';
+  return [
+    '<details>',
+    `<summary>🤖 Fix with AI — copy a prompt per finding (${prompts.length})</summary>`,
+    '',
+    'Paste a block into Copilot Chat (or any AI assistant) with the file open.',
+    '',
+    blocks.join('\n\n'),
+    more,
+    '',
+    '</details>',
+  ].join('\n');
+}
 
 /**
  * The product's headline: what THIS PR introduced — the only thing the gate
@@ -363,6 +394,8 @@ function introducedSection(report: ReviewReport): string {
     `<summary><b>🆕 Introduced by this PR (${fresh.length}) — what the gate judges</b></summary>`,
     '',
     table,
+    '',
+    fixPromptsBlock(report, fresh),
     '',
     '</details>',
   ].join('\n');
@@ -380,7 +413,7 @@ function preExistingNote(report: ReviewReport): string {
   );
 }
 
-function footer(report: ReviewReport): string {
+function footer(report: ReviewReport, opts: RenderMarkdownOptions): string {
   const parts = ['Reported by **PR Review Insight**', `schema v${report.schemaVersion}`];
   if (report.baseline) {
     const staleness =
@@ -388,6 +421,9 @@ function footer(report: ReviewReport): string {
         ? ` (${report.baseline.staleness} commit${report.baseline.staleness === 1 ? '' : 's'} stale)`
         : '';
     parts.push(`baseline \`${report.baseline.sha.slice(0, 7)}\`${staleness}`);
+  }
+  if (opts.artifactsUrl) {
+    parts.push(`📥 [download the full report](${opts.artifactsUrl}) (HTML · JSON · fix plan)`);
   }
   return `<sub>${parts.join(' · ')}</sub>`;
 }
@@ -443,11 +479,15 @@ export function renderMarkdown(report: ReviewReport, opts: RenderMarkdownOptions
   // minimal single-block comment for the quiet state
   if (report.state === 'no-change') {
     const warnings = scannerErrorsBlock(report);
-    return assemble([`${COMMENT_MARKER}\n${header}`, warnings, footer(report)]);
+    return assemble([`${COMMENT_MARKER}\n${header}`, warnings, footer(report, opts)]);
   }
 
   const build = (sections: Section[]): string =>
-    assemble([`${COMMENT_MARKER}\n${header}`, ...sections.map((s) => s.text), footer(report)]);
+    assemble([
+      `${COMMENT_MARKER}\n${header}`,
+      ...sections.map((s) => s.text),
+      footer(report, opts),
+    ]);
 
   // full output
   let sections = sectionsFor(report, opts, Number.MAX_SAFE_INTEGER);

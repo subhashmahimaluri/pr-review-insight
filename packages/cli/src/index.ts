@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import {
   applyBaseline,
   buildReport,
@@ -10,10 +10,12 @@ import {
 } from '@pr-review-insight/core';
 import { realExec, runScanners } from '@pr-review-insight/scanners';
 import {
+  renderCopilotInstructions,
   renderFixPlan,
   renderHtml,
   renderMarkdown,
   renderSarif,
+  upsertInstructions,
 } from '@pr-review-insight/reporters';
 import { BaselineEntry, emptyCounts } from '@pr-review-insight/history';
 
@@ -26,10 +28,14 @@ Usage:
              [--base-dir <path>] [--strict]
   pri gate   [--report <file>]
   pri report [--report <file>] [--md <file>] [--html <file>]
+  pri emit-instructions [--dir <path>] [--out <file>]
 
 scan    run all scanners, write code-report.json (and optional SARIF/HTML/markdown)
 gate    exit 1 if the report's gate failed — for CI pipelines (GitLab, Jenkins)
 report  re-render markdown/HTML from an existing code-report.json
+emit-instructions
+        write/refresh the gate policy as AI guidance in
+        .github/copilot-instructions.md (prevention, not cure)
 `;
 
 function parseArgs(argv: string[]): { command: string; flags: Map<string, string | boolean> } {
@@ -176,6 +182,23 @@ function reportCmd(flags: Map<string, string | boolean>): number {
   return 0;
 }
 
+function emitInstructions(flags: Map<string, string | boolean>): number {
+  const cwd = resolve(str(flags, 'dir', process.cwd()));
+  const out = resolve(cwd, str(flags, 'out', '.github/copilot-instructions.md'));
+  const { config } = loadConfig(cwd);
+  const block = renderCopilotInstructions(config);
+  let existing: string | null = null;
+  try {
+    existing = readFileSync(out, 'utf8');
+  } catch {
+    // no existing file — we create it
+  }
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, upsertInstructions(existing, block));
+  console.error(`pri: ${existing ? 'updated' : 'created'} ${out}`);
+  return 0;
+}
+
 export async function main(argv: string[]): Promise<number> {
   const { command, flags } = parseArgs(argv);
   switch (command) {
@@ -185,6 +208,8 @@ export async function main(argv: string[]): Promise<number> {
       return gate(flags);
     case 'report':
       return reportCmd(flags);
+    case 'emit-instructions':
+      return emitInstructions(flags);
     default:
       process.stderr.write(USAGE);
       return command === '' || command === 'help' || command === '--help' ? 0 : 2;

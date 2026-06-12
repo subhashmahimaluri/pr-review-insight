@@ -126,6 +126,20 @@ describe('renderMarkdown — layout discipline', () => {
     );
   });
 
+  it('offers a copy-paste AI fix prompt per new finding (7.3)', () => {
+    const md = renderMarkdown(richReport());
+    expect(md).toContain('🤖 Fix with AI — copy a prompt per finding (1)');
+    expect(md).toContain('Fix the following issue in `src/re.ts` (lines 10–12):');
+    expect(md).toContain('Rule security/detect-unsafe-regex (major');
+  });
+
+  it('links the downloadable report when an artifacts URL is provided', () => {
+    const url = 'https://github.com/acme/webapp/actions/runs/123#artifacts';
+    const md = renderMarkdown(richReport(), { artifactsUrl: url });
+    expect(md).toContain(`📥 [download the full report](${url})`);
+    expect(renderMarkdown(richReport())).not.toContain('download the full report');
+  });
+
   it('frames pre-existing-only debt as non-blocking suggestions', () => {
     const md = renderMarkdown(
       makeReport({

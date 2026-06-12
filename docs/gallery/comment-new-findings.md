@@ -21,6 +21,50 @@ _policy: zero new critical · max 5 new major · max duplication 5% (new) · PR 
 | [`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3)    | `sonarjs/code-eval`     | **🟨 minor** 🆕 | **Make sure that this dynamic injection or execution of code is safe.**           |
 | [`index.html`](https://github.com/acme/webapp/blob/feedbeef0012/index.html)                  | `pentest/missing-csp`   | **⬜ info** 🆕  | **No Content-Security-Policy meta tag — consider adding one (or set the header)** |
 
+<details>
+<summary>🤖 Fix with AI — copy a prompt per finding (4)</summary>
+
+Paste a block into Copilot Chat (or any AI assistant) with the file open.
+
+**[`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx)** — `knip/unused-file`
+
+```text
+Fix the following issue in `src/Component.tsx`:
+Rule knip/unused-file (major): File is never imported
+Context: entire file
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`src/danger.ts:10`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L10-L10)** — `pentest/open-redirect`
+
+```text
+Fix the following issue in `src/danger.ts` (lines 10–10):
+Rule pentest/open-redirect (major, A01:2021-Broken Access Control): Possible open redirect from user-controlled input
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3)** — `sonarjs/code-eval`
+
+```text
+Fix the following issue in `src/danger.ts` (lines 3–3):
+Rule sonarjs/code-eval (minor): Make sure that this dynamic injection or execution of code is safe.
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`index.html`](https://github.com/acme/webapp/blob/feedbeef0012/index.html)** — `pentest/missing-csp`
+
+```text
+Fix the following issue in `index.html`:
+Rule pentest/missing-csp (info, A05:2021-Security Misconfiguration): No Content-Security-Policy meta tag — consider adding one (or set the header)
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+</details>
+
 </details>
 
 <details>

@@ -125,6 +125,31 @@
       small {
         color: var(--muted);
       }
+      @media print {
+        :root {
+          color-scheme: light;
+          --bg: #fff;
+          --fg: #000;
+          --muted: #444;
+          --card: #f3f3f3;
+          --border: #bbb;
+        }
+        .filters {
+          display: none;
+        }
+        tbody tr {
+          display: table-row !important;
+          break-inside: avoid;
+        }
+        body {
+          margin: 0;
+          max-width: none;
+          font-size: 11px;
+        }
+        th {
+          position: static;
+        }
+      }
     </style>
   </head>
   <body>

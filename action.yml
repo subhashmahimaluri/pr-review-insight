@@ -59,14 +59,21 @@ inputs:
     description: 'Also emit SARIF here (upload with github/codeql-action/upload-sarif)'
     required: false
   html-file:
-    description: 'Also emit a self-contained interactive HTML report here (print → PDF ready)'
+    description: 'Self-contained interactive HTML report (print → PDF ready)'
     required: false
+    default: 'code-report.html'
   fix-plan-file:
     description: >-
-      Also emit a markdown fix plan here — new findings first with one
-      ready-to-paste AI prompt each (Copilot Chat etc.), pre-existing debt as
-      per-category batches
+      Markdown fix plan — new findings first with one ready-to-paste AI prompt
+      each (Copilot Chat etc.), pre-existing debt as per-category batches
     required: false
+    default: 'fix-plan.md'
+  upload-artifact:
+    description: >-
+      Upload report + HTML + fix plan as a run artifact and link it from the
+      PR comment (📥 download the full report)
+    required: false
+    default: 'true'
 
 outputs:
   state:

@@ -92,9 +92,12 @@ The CLI equivalent is `pri scan --base-dir <base-checkout>`.
   absolute, cwd-relative, or output-dir-relative, plus macOS /tmp →
   /private/tmp realpath aliasing — wrong relative paths silently break
   fingerprint matching across base/head scans (false 🆕).
-- Band image URLs must be cache-busted per RUN (`?v=<sha>-<runId>`), not per
-  commit — GitHub's camo proxy caches by exact URL, so re-runs on the same
-  sha would show a stale band forever.
+- Per-PR band SVGs get a UNIQUE FILENAME per run (`badges/pr-N/<sha>-<runId>-<theme>.svg`)
+  — both camo and the raw.githubusercontent CDN cache by path; query-string
+  busting alone proved insufficient (stale "missing gate card" reports).
+- The action uploads its own run artifact (@actions/artifact, `upload-artifact`
+  input, default true) and links it from the comment footer; html-file and
+  fix-plan-file default ON so every run is downloadable.
 - The fix plan (`renderFixPlan`, `fix-plan-file` input, `--fix-plan` flag) is
   the AI-assist surface: prompts, not API calls (no keys, Copilot-ready).
   Keep new-findings-first and the non-blocking framing for pre-existing debt.

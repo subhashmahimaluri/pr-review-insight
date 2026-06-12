@@ -175,6 +175,13 @@ export function overviewBandPath(theme: Theme): string {
   return `badges/overview-band-${theme}.svg`;
 }
 
-export function prOverviewBandPath(prNumber: number, theme: Theme): string {
-  return `badges/pr-${prNumber}-overview-band-${theme}.svg`;
+/**
+ * Per-PR band path. `uniq` (sha + run id) goes INTO the filename — both camo
+ * and the raw.githubusercontent CDN cache by path, so a fixed path can serve
+ * a stale band no matter what query string is appended.
+ */
+export function prOverviewBandPath(prNumber: number, theme: Theme, uniq?: string): string {
+  return uniq
+    ? `badges/pr-${prNumber}/${uniq}-${theme}.svg`
+    : `badges/pr-${prNumber}-overview-band-${theme}.svg`;
 }

@@ -31,6 +31,78 @@ _policy: zero new critical · max 5 new major · max duplication 5% (new) · PR 
 | [`src/danger.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L5-L5)         | `pentest/cleartext-http`               | **🟨 minor** 🆕    | **Cleartext `http://` URL — use https**                                                                        |
 | [`src/invoices.ts:3–22`](https://github.com/acme/webapp/blob/feedbeef0012/src/invoices.ts#L3-L22) | `jscpd/duplication`                    | **🟨 minor** 🆕    | **20 duplicated lines, also at src/orders.ts:3–22**                                                            |
 
+<details>
+<summary>🤖 Fix with AI — copy a prompt per finding (7)</summary>
+
+Paste a block into Copilot Chat (or any AI assistant) with the file open.
+
+**[`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4)** — `pentest/public-env-secret`
+
+```text
+Fix the following issue in `.env` (lines 4–4):
+Rule pentest/public-env-secret (critical, A07:2021-Identification and Authentication Failures): Secret-looking key under a client-exposed env prefix — it ships in the bundle
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3)** — `security/detect-eval-with-expression`
+
+```text
+Fix the following issue in `src/danger.ts` (lines 3–3):
+Rule security/detect-eval-with-expression (critical, A03:2021-Injection): eval with argument of type Identifier
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`src/index.ts:16`](https://github.com/acme/webapp/blob/feedbeef0012/src/index.ts#L16-L16)** — `sonarjs/cognitive-complexity`
+
+```text
+Fix the following issue in `src/index.ts` (lines 16–16):
+Rule sonarjs/cognitive-complexity (major): Refactor this function to reduce its Cognitive Complexity from 43 to the 15 allowed.
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)** — `knip/unused-dependency`
+
+```text
+Fix the following issue in `package.json`:
+Rule knip/unused-dependency (minor): Unused dependency `left-pad`
+Context: left-pad
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`src/Component.tsx:4`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx#L4-L4)** — `jsx-a11y/alt-text`
+
+```text
+Fix the following issue in `src/Component.tsx` (lines 4–4):
+Rule jsx-a11y/alt-text (minor): img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`src/danger.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L5-L5)** — `pentest/cleartext-http`
+
+```text
+Fix the following issue in `src/danger.ts` (lines 5–5):
+Rule pentest/cleartext-http (minor, A02:2021-Cryptographic Failures): Cleartext `http://` URL — use https
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+**[`src/invoices.ts:3–22`](https://github.com/acme/webapp/blob/feedbeef0012/src/invoices.ts#L3-L22)** — `jscpd/duplication`
+
+```text
+Fix the following issue in `src/invoices.ts` (lines 3–22):
+Rule jscpd/duplication (minor): 20 duplicated lines, also at src/orders.ts:3–22
+Context: src/orders.ts#L3-L22
+Constraints: keep behavior identical, change only what the fix requires,
+follow the surrounding code style, and add or update tests when the fix is testable.
+```
+
+</details>
+
 </details>
 
 <details>

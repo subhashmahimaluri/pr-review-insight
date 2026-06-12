@@ -21,6 +21,8 @@ export type ActionInputs = {
   sarifFile: string;
   htmlFile: string;
   fixPlanFile: string;
+  /** upload report + html + fix plan as a run artifact (download from the run page) */
+  uploadArtifact: boolean;
 };
 
 export function readInputs(): ActionInputs {
@@ -54,7 +56,9 @@ export function readInputs(): ActionInputs {
     annotations,
     reportFile: getInput('report-file') || 'code-report.json',
     sarifFile: getInput('sarif-file') || '',
-    htmlFile: getInput('html-file') || '',
-    fixPlanFile: getInput('fix-plan-file') || '',
+    // on by default — every run (passed included) gets a downloadable report
+    htmlFile: getInput('html-file') || 'code-report.html',
+    fixPlanFile: getInput('fix-plan-file') || 'fix-plan.md',
+    uploadArtifact: getInput('upload-artifact') ? getBooleanInput('upload-artifact') : true,
   };
 }

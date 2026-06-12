@@ -41,7 +41,12 @@ function sortBySeverity(findings: Finding[]): Finding[] {
   );
 }
 
-function promptFor(f: Finding): string {
+/**
+ * One paste-ready prompt for an AI assistant (Copilot Chat, Claude, Cursor).
+ * Shared between the fix-plan artifact and the PR comment's per-finding
+ * "fix with AI" blocks.
+ */
+export function buildFixPrompt(f: Finding): string {
   const lines = [
     `Fix the following issue in \`${f.file}\`${
       f.range ? ` (lines ${f.range.start}–${f.range.end})` : ''
@@ -66,7 +71,7 @@ function findingBlock(f: Finding, index: number): string {
     '',
     '**Prompt for your AI assistant:**',
     '',
-    promptFor(f),
+    buildFixPrompt(f),
   ].join('\n');
 }
 

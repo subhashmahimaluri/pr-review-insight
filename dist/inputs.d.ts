@@ -19,5 +19,7 @@ export type ActionInputs = {
     sarifFile: string;
     htmlFile: string;
     fixPlanFile: string;
+    /** upload report + html + fix plan as a run artifact (download from the run page) */
+    uploadArtifact: boolean;
 };
 export declare function readInputs(): ActionInputs;

@@ -200,8 +200,9 @@ The band never presents base-branch data as if it were the PR's.
 | `annotations`     | `new`                        | inline annotations on touched lines: `new` / `all` / `none` (≤200, failures first) |
 | `report-file`     | `code-report.json`           | versioned JSON artifact (`schemaVersion: 1`, emitted in every state)               |
 | `sarif-file`      | —                            | also emit SARIF → upload for GitHub's code-scanning tab                            |
-| `html-file`       | —                            | also emit a self-contained interactive HTML report (print → PDF ready)             |
-| `fix-plan-file`   | —                            | also emit the markdown **fix plan** with ready-to-paste AI prompts                 |
+| `html-file`       | `code-report.html`           | self-contained interactive HTML report (print → PDF ready)                         |
+| `fix-plan-file`   | `fix-plan.md`                | the markdown **fix plan** with ready-to-paste AI prompts                           |
+| `upload-artifact` | `true`                       | upload JSON + HTML + fix plan as a run artifact, 📥-linked from the comment footer |
 
 ### Outputs
 
@@ -235,10 +236,22 @@ to _fixed_:
 | HTML report        | `html-file`     | self-contained, filterable (new / category), dark-mode aware, **print stylesheet included — open in a browser and Print → Save as PDF** for a clean document                                                           |
 | **Fix plan**       | `fix-plan-file` | markdown with **🆕 new findings first** (one ready-to-paste prompt each) and **🧹 pre-existing debt** as per-category batch prompts — paste into **Copilot Chat**, Claude, or Cursor with the file open and let it fix |
 
-The fix plan needs no AI API keys or vendor lock-in: it produces _prompts_,
+**Downloads are built in**: the action uploads JSON + HTML + fix plan as a run
+artifact on every run (passed reports included — pre-existing debt is always
+in there) and links it from the comment footer — _📥 download the full
+report_. Disable with `upload-artifact: false`.
+
+The AI workflow needs no API keys or vendor lock-in — it produces _prompts_,
 and any assistant your team already has (including Copilot Enterprise)
-consumes them. The same separation (new vs pre-existing) means an author fixes
-their own findings first, and debt cleanup can be scheduled as separate work.
+consumes them:
+
+- **In the PR comment** — every new finding gets a _🤖 Fix with AI_ block:
+  copy, paste into Copilot Chat with the file open, done.
+- **The fix plan artifact** — the same per-finding prompts plus per-category
+  batch prompts for pre-existing debt.
+- **Prevention** — `npx pri emit-instructions` writes your gate policy into
+  `.github/copilot-instructions.md` (idempotent, marker-delimited), so
+  Copilot avoids _creating_ findings while authoring.
 
 ## CLI (GitLab, Jenkins, local)
 

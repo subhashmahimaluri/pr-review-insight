@@ -282,20 +282,20 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
         newCritical: newFindings.filter((f) => f.severity === 'critical').length,
         newMajor: newFindings.filter((f) => f.severity === 'major').length,
       };
+      // a UNIQUE filename per run — camo and the raw CDN both cache by path,
+      // so a fixed path can keep serving a stale band no matter the query
+      const uniq = `${pr.head.sha.slice(0, 7)}-${context.runId}`;
       await commitFiles(octokit, {
         ...branchParams,
         message: `pr-band: PR #${pr.number} @ ${pr.head.sha.slice(0, 7)}`,
         files: (['light', 'dark'] as const).map((theme) => ({
-          path: prOverviewBandPath(pr.number, theme),
+          path: prOverviewBandPath(pr.number, theme, uniq),
           content: renderOverviewBandSvg(report.categories ?? [], prSeries, theme, { gate }),
         })),
       });
-      // bust GitHub's camo image cache per RUN, not per commit — re-runs on
-      // the same sha would otherwise serve a stale band forever
-      const cacheBust = `${pr.head.sha.slice(0, 7)}-${context.runId}`;
       bandImages = {
-        light: `${rawBase}/${prOverviewBandPath(pr.number, 'light')}?v=${cacheBust}`,
-        dark: `${rawBase}/${prOverviewBandPath(pr.number, 'dark')}?v=${cacheBust}`,
+        light: `${rawBase}/${prOverviewBandPath(pr.number, 'light', uniq)}`,
+        dark: `${rawBase}/${prOverviewBandPath(pr.number, 'dark', uniq)}`,
       };
       const baseLabel = baseline
         ? baseline.meta.source === 'scan'
@@ -318,7 +318,28 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
     }
   }
 
-  const body = renderMarkdown(report, { bandImages, bandCaption });
+  // built-in artifact upload — the download link works on every run,
+  // passed reports included (the fix plan covers pre-existing debt too)
+  let artifactsUrl: string | undefined;
+  if (inputs.uploadArtifact) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { DefaultArtifactClient } =
+        require('@actions/artifact') as typeof import('@actions/artifact');
+      const client = new DefaultArtifactClient();
+      const files = [inputs.reportFile, inputs.htmlFile, inputs.fixPlanFile, inputs.sarifFile]
+        .filter(Boolean)
+        .map((f) => join(cwd, f));
+      await client.uploadArtifact('pr-review-insight-report', files, cwd, {
+        retentionDays: 30,
+      });
+      artifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}#artifacts`;
+    } catch (error) {
+      warning(`Could not upload report artifact: ${(error as Error).message}`);
+    }
+  }
+
+  const body = renderMarkdown(report, { bandImages, bandCaption, artifactsUrl });
 
   // posting can never mask the verdict (hard-won rule #2)
   if (inputs.comment && pr) {
