@@ -15,7 +15,7 @@
     "@pr-review-insight/history": "0.1.0",
     "@pr-review-insight/reporters": "0.1.0",
     "@pr-review-insight/scanners": "0.1.0",
-    "jscpd": "^4.0.5",
+    "jscpd": "^5.0.8",
     "knip": "^5.46.0",
     "madge": "^8.0.0",
     "secretlint": "^9.3.0",

@@ -19,7 +19,7 @@
     "picomatch": "^4.0.2"
   },
   "devDependencies": {
-    "jscpd": "^4.0.5",
+    "jscpd": "^5.0.8",
     "knip": "^5.46.0",
     "madge": "^8.0.0",
     "secretlint": "^9.3.0",
