@@ -20,7 +20,11 @@ export type BuildReportInput = {
   /** config/input-level errors — drive the invalid-data state */
   inputErrors?: string[];
   warnings?: string[];
-  stats?: { duplicationPercent?: number; filesScanned?: number };
+  stats?: {
+    duplicationPercent?: number;
+    baselineDuplicationPercent?: number;
+    filesScanned?: number;
+  };
   repo?: { owner: string; repo: string };
   pr?: { number: number; headSha?: string };
   strict?: boolean;

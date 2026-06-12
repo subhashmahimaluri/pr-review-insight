@@ -142,13 +142,20 @@ for (const [name, rep] of Object.entries(states)) {
 }
 
 const bandSource = states['gate-failed'];
+const fresh = (bandSource.findings ?? []).filter((f) => f.isNew);
+const gate = {
+  verdict: bandSource.policy?.verdict ?? ('fail' as const),
+  newTotal: fresh.length,
+  newCritical: fresh.filter((f) => f.severity === 'critical').length,
+  newMajor: fresh.filter((f) => f.severity === 'major').length,
+};
 writeFileSync(
   join(OUT, 'overview-band-light.svg'),
-  renderOverviewBandSvg(bandSource.categories ?? [], series, 'light')
+  renderOverviewBandSvg(bandSource.categories ?? [], series, 'light', { gate })
 );
 writeFileSync(
   join(OUT, 'overview-band-dark.svg'),
-  renderOverviewBandSvg(bandSource.categories ?? [], series, 'dark')
+  renderOverviewBandSvg(bandSource.categories ?? [], series, 'dark', { gate })
 );
 writeFileSync(join(OUT, 'code-report.html'), renderHtml(states['gate-failed']));
 

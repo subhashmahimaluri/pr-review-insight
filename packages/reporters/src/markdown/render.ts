@@ -249,7 +249,11 @@ function duplicationSpoiler(
   duplicationPercent: number | undefined,
   rowCap: number
 ): string {
-  const pct = duplicationPercent !== undefined ? `${duplicationPercent.toFixed(1)}%` : undefined;
+  const basePct = report.stats?.baselineDuplicationPercent;
+  const pct =
+    duplicationPercent !== undefined
+      ? `${duplicationPercent.toFixed(1)}%${basePct !== undefined ? ` vs ${basePct.toFixed(1)}% on base` : ''}`
+      : undefined;
   const rows = sortFindings(findings).slice(0, rowCap);
   const lines = [
     '| Clone | Also at | Severity |',
@@ -343,17 +347,37 @@ function allFindingsByFile(report: ReviewReport): string {
   return spoiler(`📋 All findings by file (${byFile.size} files)`, blocks.join('\n'));
 }
 
-function newCriticalList(report: ReviewReport): string {
-  // protected — survives every truncation step so blockers stay visible
-  const blockers = (report.findings ?? []).filter((f) => f.isNew && f.severity === 'critical');
-  if (blockers.length === 0) return '';
+const INTRODUCED_ROW_CAP = 15;
+
+/**
+ * The product's headline: what THIS PR introduced — the only thing the gate
+ * judges. Open by default (still collapsible), protected through every
+ * truncation step.
+ */
+function introducedSection(report: ReviewReport): string {
+  const fresh = (report.findings ?? []).filter((f) => f.isNew);
+  if (fresh.length === 0) return '';
+  const table = findingsTable(report, fresh, INTRODUCED_ROW_CAP);
   return [
-    '**New critical findings**',
+    '<details open>',
+    `<summary><b>🆕 Introduced by this PR (${fresh.length}) — what the gate judges</b></summary>`,
     '',
-    ...blockers
-      .slice(0, 20)
-      .map((f) => `- ${fileLink(report, f)} — \`${f.ruleId}\`: ${escapeCell(f.message)}`),
+    table,
+    '',
+    '</details>',
   ].join('\n');
+}
+
+/** when the PR adds nothing, say so — and frame the rest as suggestions */
+function preExistingNote(report: ReviewReport): string {
+  const total = report.totals?.total ?? 0;
+  const fresh = report.totals?.new;
+  if (fresh !== 0 || total === 0) return '';
+  return (
+    `💡 **This PR introduces no new findings.** The ${total} finding${total === 1 ? '' : 's'} ` +
+    `below ${total === 1 ? 'is' : 'are'} pre-existing — shown as cleanup suggestions, ` +
+    `they don't block this merge.`
+  );
 }
 
 function footer(report: ReviewReport): string {
@@ -388,10 +412,20 @@ function sectionsFor(report: ReviewReport, opts: RenderMarkdownOptions, rowCap: 
   // graphs visible on top; the table fallback only when there is no image band
   if (!band) sections.push({ text: summaryTable(report), protected: true });
 
-  const criticals = newCriticalList(report);
-  if (criticals) sections.push({ text: criticals, protected: true });
+  const introduced = introducedSection(report);
+  if (introduced) sections.push({ text: introduced, protected: true });
+  const note = preExistingNote(report);
+  if (note) sections.push({ text: note, protected: true });
 
-  for (const category of CATEGORY_ORDER) {
+  // categories that gained new findings come first — the reader's priority
+  const newIn = new Set(
+    (report.categories ?? []).filter((c) => (c.new ?? 0) > 0).map((c) => c.category)
+  );
+  const ordered = [
+    ...CATEGORY_ORDER.filter((c) => newIn.has(c)),
+    ...CATEGORY_ORDER.filter((c) => !newIn.has(c)),
+  ];
+  for (const category of ordered) {
     const text = categorySection(report, category, rowCap);
     if (text) sections.push({ text, category });
   }
@@ -430,6 +464,6 @@ export function renderMarkdown(report: ReviewReport, opts: RenderMarkdownOptions
   output = build(capped);
   if (output.length <= maxChars) return output;
 
-  // step 3 — protected only: verdict, alerts, band, new-critical list
+  // step 3 — protected only: verdict, alerts, band, introduced-by-this-PR
   return build(capped.filter((s) => s.protected));
 }

@@ -22,10 +22,15 @@ export type GateInput = {
   findings: Finding[];
   /** project-wide duplication percentage from jscpd, when the scanner ran */
   duplicationPercent?: number;
+  /** duplication percentage recorded for the baseline — drives the 'new' scope */
+  baselineDuplicationPercent?: number;
   config: Config;
   /** without a baseline, `isNew` is unknowable — new-findings gates are skipped */
   hasBaseline: boolean;
 };
+
+/** percentage points a PR may move duplication before the 'new' scope blames it */
+const DUPLICATION_TOLERANCE = 0.1;
 
 function checkLimits(
   rule: 'new-findings' | 'total-findings',
@@ -61,7 +66,11 @@ export function describePolicy(config: Config): string {
     if (limit === undefined) continue;
     parts.push(limit === 0 ? `zero new ${severity}` : `max ${limit} new ${severity}`);
   }
-  parts.push(`max duplication ${config.gates.duplication.maxPercent}%`);
+  parts.push(
+    config.gates.duplication.scope === 'absolute'
+      ? `max duplication ${config.gates.duplication.maxPercent}% (absolute)`
+      : `max duplication ${config.gates.duplication.maxPercent}% (new)`
+  );
   if (config.gates.deadCode === 'gate') parts.push('no new dead code');
   if (config.gates.totals) {
     for (const severity of SEVERITIES) {
@@ -90,14 +99,30 @@ export function evaluateGates(input: GateInput): GateResult {
     checkLimits('total-findings', config.gates.totals, countBySeverity(findings), violations);
   }
 
-  const maxDup = config.gates.duplication.maxPercent;
+  const { maxPercent: maxDup, scope: dupScope } = config.gates.duplication;
   if (input.duplicationPercent !== undefined && input.duplicationPercent > maxDup) {
-    violations.push({
-      rule: 'duplication',
-      limit: maxDup,
-      actual: input.duplicationPercent,
-      detail: `duplication ${input.duplicationPercent.toFixed(1)}% — limit ${maxDup}%`,
-    });
+    if (dupScope === 'absolute') {
+      violations.push({
+        rule: 'duplication',
+        limit: maxDup,
+        actual: input.duplicationPercent,
+        detail: `duplication ${input.duplicationPercent.toFixed(1)}% — limit ${maxDup}%`,
+      });
+    } else if (
+      // 'new' scope: pre-existing duplication never blocks (D3) — fail only
+      // when this PR pushed the percentage further up
+      input.baselineDuplicationPercent !== undefined &&
+      input.duplicationPercent > input.baselineDuplicationPercent + DUPLICATION_TOLERANCE
+    ) {
+      violations.push({
+        rule: 'duplication',
+        limit: maxDup,
+        actual: input.duplicationPercent,
+        detail:
+          `duplication ${input.duplicationPercent.toFixed(1)}% — up from ` +
+          `${input.baselineDuplicationPercent.toFixed(1)}% on base, limit ${maxDup}%`,
+      });
+    }
   }
 
   if (config.gates.deadCode === 'gate' && input.hasBaseline) {

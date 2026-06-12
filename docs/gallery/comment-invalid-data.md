@@ -2,7 +2,7 @@
 
 ## ⚠️ Code review input error
 
-_policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
+_policy: zero new critical · max 5 new major · max duplication 5% (new) · PR #12_
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./overview-band-dark.svg">

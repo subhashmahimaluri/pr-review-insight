@@ -79,6 +79,37 @@ describe('renderOverviewBandSvg', () => {
   });
 });
 
+describe('quality gate card', () => {
+  it('renders a leading PASS/FAIL card when gate info is provided (10 cards total)', () => {
+    const failed = renderOverviewBandSvg(allCategories, [], 'light', {
+      gate: { verdict: 'fail', newTotal: 3, newCritical: 1, newMajor: 2 },
+    });
+    expect(failed.match(/<rect[^>]*rx="8"/g)).toHaveLength(10);
+    expect(failed).toContain('🚦 Quality gate');
+    expect(failed).toContain('>FAIL<');
+    expect(failed).toContain('3 new · 1 crit · 2 major');
+
+    const passed = renderOverviewBandSvg(allCategories, [], 'dark', {
+      gate: { verdict: 'pass', newTotal: 0 },
+    });
+    expect(passed).toContain('>PASS<');
+    expect(passed).toContain('nothing introduced');
+  });
+
+  it('says "no baseline yet" when there is nothing to judge', () => {
+    const svg = renderOverviewBandSvg(allCategories, [], 'light', {
+      gate: { verdict: 'pass', newTotal: null },
+    });
+    expect(svg).toContain('no baseline yet');
+  });
+
+  it('omits the card without gate info (9 cards, backwards compatible)', () => {
+    const svg = renderOverviewBandSvg(allCategories, [], 'light');
+    expect(svg.match(/<rect[^>]*rx="8"/g)).toHaveLength(9);
+    expect(svg).not.toContain('Quality gate');
+  });
+});
+
 describe('sparklinePath', () => {
   it('fits values into the box', () => {
     const path = sparklinePath([0, 10], 0, 0, 100, 20);

@@ -10,14 +10,14 @@ import {
 } from '@pr-review-insight/core';
 import { realExec, runScanners } from '@pr-review-insight/scanners';
 import { renderHtml, renderMarkdown, renderSarif } from '@pr-review-insight/reporters';
-import { BaselineEntry } from '@pr-review-insight/history';
+import { BaselineEntry, emptyCounts } from '@pr-review-insight/history';
 
 /** exit codes: 0 = pass, 1 = gate failed, 2 = crash/invalid */
 const USAGE = `pri — PR Review Insight CLI
 
 Usage:
   pri scan   [--dir <path>] [--report <file>] [--sarif <file>] [--html <file>]
-             [--md <file>] [--baseline <baseline.json>] [--strict]
+             [--md <file>] [--baseline <baseline.json>] [--base-dir <path>] [--strict]
   pri gate   [--report <file>]
   pri report [--report <file>] [--md <file>] [--html <file>]
 
@@ -61,31 +61,38 @@ async function scan(flags: Map<string, string | boolean>): Promise<number> {
   for (const err of scanResult.errors) console.error(`pri: scanner ${err.scanner}: ${err.message}`);
   for (const warn of scanResult.warnings) console.error(`pri: ${warn}`);
 
-  let baseline = null;
-  let baselineCounts = null;
+  // baseline: a recorded entry file, or a second scan of the base checkout
+  // (dual-scan — e.g. the merge-base in a sibling directory)
+  let entry: BaselineEntry | null = null;
+  let baselineSource: 'file' | 'scan' = 'file';
   const baselineFile = flags.get('baseline');
+  const baseDir = flags.get('base-dir');
   if (typeof baselineFile === 'string') {
-    const entry = JSON.parse(readFileSync(resolve(baselineFile), 'utf8')) as BaselineEntry;
-    baseline = {
-      sha: entry.sha,
-      ref: entry.ref,
-      timestamp: entry.timestamp,
-      source: 'file' as const,
+    entry = JSON.parse(readFileSync(resolve(baselineFile), 'utf8')) as BaselineEntry;
+  } else if (typeof baseDir === 'string') {
+    baselineSource = 'scan';
+    const basePath = resolve(baseDir);
+    console.error(`pri: scanning base ${basePath} for the baseline (dual-scan)`);
+    const baseScan = await runScanners({ cwd: basePath, config, exec: realExec });
+    const counts = emptyCounts();
+    for (const finding of baseScan.findings) counts[finding.category] += 1;
+    entry = {
+      sha: 'base-dir',
+      fingerprints: baseScan.findings.map((f) => f.fingerprint),
+      counts,
+      stats: { duplicationPercent: baseScan.stats.duplicationPercent },
     };
-    baselineCounts = entry.counts ?? null;
   }
 
-  const findings = applyBaseline(
-    scanResult.findings,
-    typeof baselineFile === 'string'
-      ? new Set(
-          (JSON.parse(readFileSync(resolve(baselineFile), 'utf8')) as BaselineEntry).fingerprints
-        )
-      : null
-  );
+  const baseline = entry
+    ? { sha: entry.sha, ref: entry.ref, timestamp: entry.timestamp, source: baselineSource }
+    : null;
+
+  const findings = applyBaseline(scanResult.findings, entry ? new Set(entry.fingerprints) : null);
   const policy = evaluateGates({
     findings,
     duplicationPercent: scanResult.stats.duplicationPercent,
+    baselineDuplicationPercent: entry?.stats?.duplicationPercent,
     config,
     hasBaseline: baseline !== null,
   });
@@ -93,10 +100,13 @@ async function scan(flags: Map<string, string | boolean>): Promise<number> {
     findings,
     policy,
     baseline,
-    baselineCounts,
+    baselineCounts: entry?.counts ?? null,
     scannerErrors: scanResult.errors,
     warnings: scanResult.warnings,
-    stats: scanResult.stats,
+    stats: {
+      ...scanResult.stats,
+      baselineDuplicationPercent: entry?.stats?.duplicationPercent,
+    },
     strict: config.strict,
     generatedAt: new Date().toISOString(),
   });

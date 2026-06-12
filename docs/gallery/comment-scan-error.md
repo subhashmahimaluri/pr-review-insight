@@ -2,7 +2,7 @@
 
 ## 🛑 Scan error — report in failure mode
 
-_policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
+_policy: zero new critical · max 5 new major · max duplication 5% (new) · PR #12_
 
 > [!WARNING]
 > 1 scanner did not finish — results may be partial.

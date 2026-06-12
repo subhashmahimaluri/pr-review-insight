@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, realpathSync } from 'node:fs';
+import { isAbsolute, join, relative, resolve } from 'node:path';
 
 const cache = new Map<string, string[] | null>();
 
@@ -33,10 +33,30 @@ export function clearSnippetCache(): void {
   cache.clear();
 }
 
-/** workspace-relative forward-slash path (hard-won rule #5) */
+function safeRealpath(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return path;
+  }
+}
+
+/**
+ * Workspace-relative forward-slash path (hard-won rule #5). Tools report
+ * paths absolute, cwd-relative or even relative to their own output dir —
+ * and macOS aliases /tmp to /private/tmp — so try every combination and keep
+ * the first candidate that lands inside the workspace.
+ */
 export function relativize(cwd: string, file: string): string {
-  let rel = file;
-  const normalizedCwd = cwd.endsWith('/') ? cwd : `${cwd}/`;
-  if (rel.startsWith(normalizedCwd)) rel = rel.slice(normalizedCwd.length);
-  return rel.replace(/\\/g, '/');
+  const abs = isAbsolute(file) ? resolve(file) : resolve(cwd, file);
+  const bases = [resolve(cwd), safeRealpath(cwd)];
+  for (const candidate of [abs, safeRealpath(abs)]) {
+    for (const base of bases) {
+      const rel = relative(base, candidate);
+      if (rel && !rel.startsWith('..') && !isAbsolute(rel)) {
+        return rel.replace(/\\/g, '/');
+      }
+    }
+  }
+  return file.replace(/\\/g, '/');
 }

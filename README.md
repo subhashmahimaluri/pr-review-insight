@@ -104,7 +104,10 @@ in `package.json`); action inputs override the file:
 {
   "gates": {
     "newFindings": { "critical": 0, "major": 5 }, // diff-aware gate, default-on
-    "duplication": { "maxPercent": 5 },
+    // scope "new" (default): fails only when the PR *worsens* duplication —
+    // 60% inherited duplication is a suggestion, never a blocker.
+    // "absolute": hard cap regardless of the baseline.
+    "duplication": { "maxPercent": 5, "scope": "new" },
     "complexity": { "maxCognitive": 15, "maxCyclomatic": 20 },
     "deadCode": "warn", // or "gate" to fail on new dead code
     "totals": { "critical": 0 }, // optional absolute gate, pre-existing included
@@ -116,7 +119,26 @@ in `package.json`); action inputs override the file:
 ```
 
 The job fails only on: gate violations, a scanner crash with `strict: true`,
-or invalid inputs.
+or invalid inputs. **A PR that introduces nothing never fails** — pre-existing
+debt is rendered as cleanup suggestions with an explicit "they don't block
+this merge" note.
+
+## How the baseline works (`baseline-mode`)
+
+The new-vs-pre-existing split needs to know what the base looked like. Two
+interchangeable sources:
+
+| Mode             | How                                                                                    | Needs                               | Extra value                                                |
+| ---------------- | -------------------------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------- |
+| `branch`         | reads the baseline recorded on the orphan branch by the `mode: baseline` workflow      | the baseline workflow on `main`     | fast; powers Δ arrows **and trend sparklines** across runs |
+| `scan`           | checks out the PR's **merge-base** in a temp git worktree and scans it in the same job | `actions/checkout` `fetch-depth: 0` | zero setup — no baseline branch, no history dependency     |
+| `auto` (default) | `branch` first, falling back to `scan`                                                 | —                                   | best of both                                               |
+| `off`            | no baseline                                                                            | —                                   | report-only                                                |
+
+The caption under the overview band always states which source produced the
+deltas — ``Δ vs base `32a1f2e` · sparklines: last 15 baseline runs`` (recorded
+baseline) or ``Δ vs merge-base `32a1f2e` (scanned in this run)`` (dual-scan).
+The band never presents base-branch data as if it were the PR's.
 
 ## Action reference
 
@@ -125,6 +147,7 @@ or invalid inputs.
 | `github-token`    | — (required)                 | `secrets.GITHUB_TOKEN`                                                             |
 | `mode`            | `report`                     | `report` (PR scan + comment) or `baseline`                                         |
 | `baseline-branch` | `pr-review-insight-baseline` | orphan branch for baselines, history, band SVGs                                    |
+| `baseline-mode`   | `auto`                       | `auto` / `branch` / `scan` (dual-scan, no branch needed) / `off`                   |
 | `gates`           | —                            | JSON overriding the config file `gates` key                                        |
 | `ignore`          | —                            | extra ignore globs (comma/newline separated)                                       |
 | `strict`          | `false`                      | scanner crash fails the job                                                        |
@@ -148,23 +171,35 @@ npx @pr-review-insight/cli gate            # re-check an existing report in a la
 npx @pr-review-insight/cli report --md -   # re-render markdown from the JSON artifact
 ```
 
-With a baseline file (`--baseline baseline.json`, the same JSON the action
-stores per commit) the CLI does the full new-vs-pre-existing split anywhere.
+Two ways to get the new-vs-pre-existing split outside GitHub:
+
+```bash
+# dual-scan: point --base-dir at a checkout of the base branch / merge-base
+npx @pr-review-insight/cli scan --dir ./head --base-dir ./base
+
+# or a recorded baseline file (the same JSON the action stores per commit)
+npx @pr-review-insight/cli scan --baseline baseline.json
+```
 
 ## The report
 
 - **Verdict header** — 8-state machine with strict priority:
   `scan-error > invalid-data > gate-failed > no-baseline > new-findings > improved > no-change > passed`
 - **Policy line** — `policy: zero new critical · max duplication 5% · PR #12`
-- **Overview band** — the SVG above, committed to the baseline branch,
-  light/dark via `<picture>`. Live per-PR band with `contents: write`;
-  base-branch band + an explicit caption otherwise
+- **Overview band** — 🚦 quality-gate hero card (PASS/FAIL + what was
+  introduced + overall-debt trend) followed by one card per category,
+  committed to the baseline branch, light/dark via `<picture>`. Live per-PR
+  band with `contents: write`; base-branch band + an explicit caption otherwise
 - **`> [!CAUTION]` alert** when new criticals block the merge, naming the worst offender
+- **🆕 Introduced by this PR** — an open-by-default section with exactly what
+  the gate judged; categories that gained new findings sort first. When the PR
+  adds nothing, the report says so and frames everything else as non-blocking
+  cleanup suggestions
 - **One spoiler per category** — security grouped by OWASP tag, duplication as
   linked clone pairs, dead code as file/symbol/why; new rows **bold + 🆕**,
   pre-existing rows muted
 - **Truncation ladder** under the 65k comment budget: drop the all-findings
-  table → cap rows at 25 → protected only (verdict, alerts, band, new-critical list)
+  table → cap rows at 25 → protected only (verdict, alerts, band, introduced list)
 
 Browse [docs/gallery](docs/gallery) for every state, regenerate with
 `npx tsx scripts/gallery.ts`.

@@ -20,6 +20,13 @@ inputs:
     description: 'Orphan branch holding baselines, history and band SVGs'
     required: false
     default: 'pr-review-insight-baseline'
+  baseline-mode:
+    description: >-
+      How to resolve the baseline: `auto` (recorded branch, falling back to
+      scanning the merge-base in this run), `branch`, `scan` (dual-scan — no
+      baseline branch needed, requires checkout fetch-depth: 0), or `off`
+    required: false
+    default: 'auto'
   gates:
     description: >-
       JSON overriding the config file `gates` key, e.g.

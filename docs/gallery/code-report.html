@@ -130,7 +130,7 @@
   <body>
     <h1>❌ Code review gate failed `blocks merge`</h1>
     <p class="policy">
-      zero new critical · max 5 new major · max duplication 5% · PR #12 · generated
+      zero new critical · max 5 new major · max duplication 5% (new) · PR #12 · generated
       2026-06-12T00:00:00.000Z
     </p>
     <div class="cards">
@@ -199,7 +199,7 @@
       </thead>
       <tbody>
         <tr data-category="pentest" data-severity="critical" data-new="1">
-          <td><code>.env:2</code></td>
+          <td><code>.env:4</code></td>
           <td>🎯 Pentest checks</td>
           <td>
             <span class="sev" style="--c: #cf222e">critical</span> <span class="new">NEW</span>
@@ -282,7 +282,7 @@
           <td>🪦 Dead code</td>
           <td><span class="sev" style="--c: #bc4c00">major</span></td>
           <td><code>knip/unused-file</code></td>
-          <td>File is never imported<br /><small>src/Component.tsx</small></td>
+          <td>File is never imported<br /><small>entire file</small></td>
         </tr>
         <tr data-category="pentest" data-severity="major" data-new="0">
           <td><code>src/Component.tsx:5</code></td>
@@ -328,7 +328,7 @@
           <td>🪦 Dead code</td>
           <td><span class="sev" style="--c: #bc4c00">major</span></td>
           <td><code>knip/unused-file</code></td>
-          <td>File is never imported<br /><small>src/unused.ts</small></td>
+          <td>File is never imported<br /><small>entire file</small></td>
         </tr>
         <tr data-category="pentest" data-severity="minor" data-new="0">
           <td><code>index.html:8</code></td>

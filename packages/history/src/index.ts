@@ -7,4 +7,4 @@ export {
   prOverviewBandPath,
   renderOverviewBandSvg,
 } from './overviewBand';
-export type { Theme } from './overviewBand';
+export type { GateCardInfo, Theme } from './overviewBand';

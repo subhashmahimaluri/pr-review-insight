@@ -9,6 +9,8 @@ export type BaselineEntry = {
   fingerprints: string[];
   /** per-category totals — drives Δ and sparklines */
   counts: Record<Category, number>;
+  /** scan-level stats — drives the diff-aware duplication gate */
+  stats?: { duplicationPercent?: number };
 };
 
 export type HistoryIndex = {

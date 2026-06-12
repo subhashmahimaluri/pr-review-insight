@@ -65,22 +65,72 @@ const BAND_ORDER: Category[] = [
   'smell',
 ];
 
+/** the hero card: what the gate judged, in one glance */
+export type GateCardInfo = {
+  verdict: 'pass' | 'warn' | 'fail';
+  /** null = no baseline, nothing to judge */
+  newTotal: number | null;
+  newCritical?: number;
+  newMajor?: number;
+};
+
+const VERDICT_STYLE: Record<GateCardInfo['verdict'], { color: string; label: string }> = {
+  pass: { color: CLEAN, label: 'PASS' },
+  warn: { color: '#9a6700', label: 'PASS' }, // new findings within limits still pass the gate
+  fail: { color: '#cf222e', label: 'FAIL' },
+};
+
+function gateCard(
+  gate: GateCardInfo,
+  series: HistoryPoint[],
+  theme: Theme,
+  x: number,
+  y: number
+): string {
+  const t = THEMES[theme];
+  const style = VERDICT_STYLE[gate.verdict];
+  const subtitle =
+    gate.newTotal === null
+      ? 'no baseline yet'
+      : gate.newTotal === 0
+        ? 'nothing introduced'
+        : `${gate.newTotal} new · ${gate.newCritical ?? 0} crit · ${gate.newMajor ?? 0} major`;
+  // overall-debt trend: sum of all categories per baseline run
+  const totals = series.map((p) => Object.values(p.counts).reduce((sum, n) => sum + n, 0));
+  const spark = sparklinePath(totals.slice(-30), x + 12, y + 74, CARD_W - 24, 20);
+  return [
+    `<rect x="${x}" y="${y}" width="${CARD_W}" height="${CARD_H}" rx="8" fill="${t.card}" stroke="${style.color}" stroke-width="1.5"/>`,
+    `<text x="${x + 12}" y="${y + 20}" font-size="11" fill="${t.muted}">🚦 Quality gate</text>`,
+    `<circle cx="${x + CARD_W - 18}" cy="${y + 16}" r="4" fill="${style.color}"/>`,
+    `<text x="${x + 12}" y="${y + 46}" font-size="22" font-weight="700" fill="${style.color}">${style.label}</text>`,
+    `<text x="${x + 12}" y="${y + 62}" font-size="11" fill="${
+      gate.newTotal && gate.newTotal > 0 ? '#cf222e' : t.muted
+    }">${escapeXml(subtitle)}</text>`,
+    spark ? `<path d="${spark}" fill="none" stroke="${style.color}" stroke-width="1.5"/>` : '',
+  ].join('');
+}
+
 export function renderOverviewBandSvg(
   unordered: CategorySummary[],
   series: HistoryPoint[],
-  theme: Theme
+  theme: Theme,
+  opts: { gate?: GateCardInfo } = {}
 ): string {
   const summaries = [...unordered].sort(
     (a, b) => BAND_ORDER.indexOf(a.category) - BAND_ORDER.indexOf(b.category)
   );
   const t = THEMES[theme];
-  const rows = Math.max(1, Math.ceil(summaries.length / PER_ROW));
-  const cols = Math.min(summaries.length, PER_ROW) || 1;
+  const cardCount = summaries.length + (opts.gate ? 1 : 0);
+  const rows = Math.max(1, Math.ceil(cardCount / PER_ROW));
+  const cols = Math.min(cardCount, PER_ROW) || 1;
   const width = cols * CARD_W + (cols - 1) * GAP;
   const height = rows * CARD_H + (rows - 1) * GAP;
+  // gate card leads — slot 0, everything else shifts one
+  const offset = opts.gate ? 1 : 0;
 
   const cards = summaries
-    .map((summary, i) => {
+    .map((summary, index) => {
+      const i = index + offset;
       const meta = CATEGORY_META[summary.category];
       const x = (i % PER_ROW) * (CARD_W + GAP);
       const y = Math.floor(i / PER_ROW) * (CARD_H + GAP);
@@ -109,11 +159,13 @@ export function renderOverviewBandSvg(
     })
     .join('');
 
+  const lead = opts.gate ? gateCard(opts.gate, series, theme, 0, 0) : '';
+
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" ` +
     `viewBox="0 0 ${width} ${height}" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" ` +
-    `role="img" aria-label="code review findings per category: count, delta vs base and trend">` +
-    `<rect width="${width}" height="${height}" fill="${t.bg}"/>${cards}</svg>`
+    `role="img" aria-label="quality gate verdict and findings per category: count, delta vs base and trend">` +
+    `<rect width="${width}" height="${height}" fill="${t.bg}"/>${lead}${cards}</svg>`
   );
 }
 

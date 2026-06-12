@@ -2,7 +2,7 @@
 
 ## 💚 Debt paid down — fewer findings than base
 
-_policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
+_policy: zero new critical · max 5 new major · max duplication 5% (new) · PR #12_
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./overview-band-dark.svg">
@@ -11,12 +11,14 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 
 <sub>Findings per category for this PR · Δ vs base `a1b2c3d` · sparklines: last 12 baseline runs</sub>
 
+💡 **This PR introduces no new findings.** The 8 findings below are pre-existing — shown as cleanup suggestions, they don't block this merge.
+
 <details>
 <summary>🎯 Pentest checks (4 total)</summary>
 
 | Where                                                                                             | Rule                                 | Severity    | Finding                                                                       |
 | ------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------- | ----------------------------------------------------------------------------- |
-| [`.env:2`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L2-L2)                           | `pentest/public-env-secret`          | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
+| [`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4)                           | `pentest/public-env-secret`          | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
 | [`src/Component.tsx:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx#L5-L5) | `pentest/dangerously-set-inner-html` | 🟧 major    | `dangerouslySetInnerHTML` — XSS sink, sanitize or remove                      |
 | [`index.html:8`](https://github.com/acme/webapp/blob/feedbeef0012/index.html#L8-L8)               | `pentest/target-blank-no-rel`        | 🟨 minor    | `target="_blank"` without `rel="noopener"` — reverse tabnabbing               |
 | [`index.html`](https://github.com/acme/webapp/blob/feedbeef0012/index.html)                       | `pentest/missing-csp`                | ⬜ info     | No Content-Security-Policy meta tag — consider adding one (or set the header) |
@@ -26,10 +28,10 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 <details>
 <summary>🪦 Dead code (2 total)</summary>
 
-| File                                                                                      | Symbol              | Why                          |
-| ----------------------------------------------------------------------------------------- | ------------------- | ---------------------------- |
-| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `src/Component.tsx` | File is never imported       |
-| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`          | Unused dependency `left-pad` |
+| File                                                                                      | Symbol        | Why                          |
+| ----------------------------------------------------------------------------------------- | ------------- | ---------------------------- |
+| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `entire file` | File is never imported       |
+| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`    | Unused dependency `left-pad` |
 
 </details>
 
@@ -58,7 +60,7 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 
 | Where                                                                   | Rule                        | Severity    | Finding                                                                       |
 | ----------------------------------------------------------------------- | --------------------------- | ----------- | ----------------------------------------------------------------------------- |
-| [`.env:2`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L2-L2) | `pentest/public-env-secret` | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
+| [`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4) | `pentest/public-env-secret` | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
 
 **[`index.html`](https://github.com/acme/webapp/blob/feedbeef0012/index.html)** — 2 findings
 

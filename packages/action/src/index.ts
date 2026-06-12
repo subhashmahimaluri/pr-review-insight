@@ -16,6 +16,7 @@ import { realExec, runScanners } from '@pr-review-insight/scanners';
 import { renderHtml, renderMarkdown, renderSarif, HEADERS } from '@pr-review-insight/reporters';
 import {
   BaselineEntry,
+  GateCardInfo,
   HistoryPoint,
   emptyCounts,
   entriesToSeries,
@@ -27,7 +28,8 @@ import { readInputs, ActionInputs } from './inputs';
 import { upsertReviewComment } from './github';
 import { buildAnnotations, postCheckRun } from './checkRun';
 import { commitFiles, pushIndexEntry, readEntry, readIndex } from './baseline/store';
-import { resolveBaseline } from './baseline/resolve';
+import { resolveBaseline, ResolvedBaseline } from './baseline/resolve';
+import { scanMergeBase } from './baseline/dualScan';
 
 type Octokit = ReturnType<typeof getOctokit>;
 
@@ -90,6 +92,7 @@ async function runBaselineMode(inputs: ActionInputs): Promise<void> {
     timestamp: new Date().toISOString(),
     fingerprints: scan.findings.map((f) => f.fingerprint),
     counts: countsFromReport(report),
+    stats: { duplicationPercent: scan.stats.duplicationPercent },
   };
 
   const branchParams = { owner, repo, branch: inputs.baselineBranch };
@@ -174,8 +177,8 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
   for (const err of scan.errors) warning(`scanner ${err.scanner}: ${err.message}`);
 
   // baseline at the merge-base — pre-existing debt is reported, never blocking (D3)
-  let baseline = null;
-  if (pr) {
+  let baseline: ResolvedBaseline | null = null;
+  if (pr && inputs.baselineMode !== 'off') {
     try {
       const { data: comparison } = await octokit.rest.repos.compareCommits({
         owner,
@@ -184,13 +187,31 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
         head: pr.head.sha,
       });
       const mergeBaseSha = comparison.merge_base_commit?.sha ?? pr.base.sha;
-      baseline = await resolveBaseline({
-        octokit,
-        owner,
-        repo,
-        branch: inputs.baselineBranch,
-        mergeBaseSha,
-      });
+      if (inputs.baselineMode === 'auto' || inputs.baselineMode === 'branch') {
+        baseline = await resolveBaseline({
+          octokit,
+          owner,
+          repo,
+          branch: inputs.baselineBranch,
+          mergeBaseSha,
+        });
+      }
+      // dual-scan: no recorded baseline needed — scan the merge-base right here
+      if (!baseline && (inputs.baselineMode === 'auto' || inputs.baselineMode === 'scan')) {
+        info(`Scanning merge-base ${mergeBaseSha.slice(0, 7)} for the baseline (dual-scan)…`);
+        const entry = await scanMergeBase({ cwd, mergeBaseSha, config });
+        if (entry) {
+          baseline = {
+            entry,
+            meta: { sha: mergeBaseSha, source: 'scan', staleness: 0 },
+          };
+        } else {
+          warning(
+            `Merge-base ${mergeBaseSha.slice(0, 7)} is not available locally — ` +
+              'use actions/checkout with `fetch-depth: 0` to enable dual-scan baselines'
+          );
+        }
+      }
     } catch (error) {
       warning(`Baseline resolution failed: ${(error as Error).message}`);
     }
@@ -203,6 +224,7 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
   const policy = evaluateGates({
     findings,
     duplicationPercent: scan.stats.duplicationPercent,
+    baselineDuplicationPercent: baseline?.entry.stats?.duplicationPercent,
     config,
     hasBaseline: baseline !== null,
   });
@@ -214,7 +236,10 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
     scannerErrors: scan.errors,
     inputErrors,
     warnings: scan.warnings,
-    stats: scan.stats,
+    stats: {
+      ...scan.stats,
+      baselineDuplicationPercent: baseline?.entry.stats?.duplicationPercent,
+    },
     repo: { owner, repo },
     pr: pr ? { number: pr.number, headSha: pr.head.sha } : undefined,
     strict: config.strict,
@@ -241,19 +266,33 @@ async function runReportMode(inputs: ActionInputs): Promise<void> {
     try {
       const series = await fetchSeries(octokit, branchParams);
       const prSeries = [...series, { sha: pr.head.sha, counts: countsFromReport(report) }];
+      const newFindings = findings.filter((f) => f.isNew);
+      const gate: GateCardInfo = {
+        verdict: policy.verdict,
+        newTotal: baseline ? newFindings.length : null,
+        newCritical: newFindings.filter((f) => f.severity === 'critical').length,
+        newMajor: newFindings.filter((f) => f.severity === 'major').length,
+      };
       await commitFiles(octokit, {
         ...branchParams,
         message: `pr-band: PR #${pr.number} @ ${pr.head.sha.slice(0, 7)}`,
         files: (['light', 'dark'] as const).map((theme) => ({
           path: prOverviewBandPath(pr.number, theme),
-          content: renderOverviewBandSvg(report.categories ?? [], prSeries, theme),
+          content: renderOverviewBandSvg(report.categories ?? [], prSeries, theme, { gate }),
         })),
       });
       bandImages = {
         light: `${rawBase}/${prOverviewBandPath(pr.number, 'light')}?sha=${pr.head.sha.slice(0, 7)}`,
         dark: `${rawBase}/${prOverviewBandPath(pr.number, 'dark')}?sha=${pr.head.sha.slice(0, 7)}`,
       };
-      bandCaption = `Findings per category for this PR · Δ vs base \`${baseline?.meta.sha.slice(0, 7) ?? '—'}\` · sparklines: last ${SPARKLINE_FETCH_LIMIT} baseline runs`;
+      const baseLabel = baseline
+        ? baseline.meta.source === 'scan'
+          ? `Δ vs merge-base \`${baseline.meta.sha.slice(0, 7)}\` (scanned in this run)`
+          : `Δ vs base \`${baseline.meta.sha.slice(0, 7)}\``
+        : 'no baseline yet';
+      const sparkLabel =
+        series.length > 1 ? ` · sparklines: last ${series.length} baseline runs` : '';
+      bandCaption = `Findings per category for this PR · ${baseLabel}${sparkLabel}`;
     } catch (error) {
       warning(`Could not publish per-PR band (needs contents: write): ${(error as Error).message}`);
       if (baseline) {

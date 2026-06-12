@@ -17,11 +17,17 @@ export const gatesSchema = z
     /** optional absolute gate over ALL findings, pre-existing included */
     totals: severityLimitsSchema.optional(),
     duplication: z
-      .object({ maxPercent: z.number().min(0).max(100) })
+      .object({
+        maxPercent: z.number().min(0).max(100).default(5),
+        /**
+         * 'new' (default): fail only when the PR *worsens* duplication above
+         * the limit — pre-existing duplication is a suggestion, never a
+         * blocker (D3). 'absolute': hard cap regardless of the baseline.
+         */
+        scope: z.enum(['new', 'absolute']).default('new'),
+      })
       .strict()
-      .default({
-        maxPercent: 5,
-      }),
+      .default({ maxPercent: 5, scope: 'new' }),
     complexity: z
       .object({
         maxCognitive: z.number().int().min(1).default(15),

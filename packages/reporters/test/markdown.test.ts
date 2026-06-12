@@ -33,7 +33,7 @@ describe('renderMarkdown — states', () => {
     expect(md).toContain('security/detect-eval-with-expression');
     expect(md).toContain('src/api.ts');
     expect(md).toContain('**Gate violations**');
-    expect(md).toContain('**New critical findings**');
+    expect(md).toContain('🆕 Introduced by this PR (1)');
   });
 
   it('no-change: minimal single-block comment', () => {
@@ -108,11 +108,34 @@ describe('renderMarkdown — layout discipline', () => {
       bandImages: { light: 'https://x/l.svg', dark: 'https://x/d.svg' },
       bandCaption: 'Findings per category for this PR',
     });
-    // every markdown table row lives after a <details> opening
-    const visible = md.split('<details>')[0];
+    // every markdown table row lives after a <details> opening (the
+    // introduced-by-this-PR section is a spoiler too — just open by default)
+    const visible = md.split('<details')[0];
     expect(visible).not.toContain('| --- |');
     expect(visible).toContain('<picture>');
     expect(visible).toContain('prefers-color-scheme: dark');
+  });
+
+  it('new findings get an open-by-default "Introduced by this PR" section before the categories', () => {
+    const md = renderMarkdown(richReport());
+    expect(md).toContain('<details open>');
+    expect(md).toContain('🆕 Introduced by this PR (1) — what the gate judges');
+    // the introduced section precedes every category spoiler
+    expect(md.indexOf('Introduced by this PR')).toBeLessThan(
+      md.indexOf('<summary>🔐 Security & OWASP')
+    );
+  });
+
+  it('frames pre-existing-only debt as non-blocking suggestions', () => {
+    const md = renderMarkdown(
+      makeReport({
+        findings: [makeFinding({ isNew: false }), makeFinding({ isNew: false, file: 'b.ts' })],
+        baselineCounts: { smell: 1 }, // delta ≠ 0 so we stay out of no-change
+      })
+    );
+    expect(md).toContain('**This PR introduces no new findings.**');
+    expect(md).toContain("they don't block this merge");
+    expect(md).not.toContain('<details open>');
   });
 
   it('falls back to a summary table only when no band image exists', () => {

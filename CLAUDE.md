@@ -3,7 +3,7 @@
 PR Review Insight — a GitHub Action + CLI that scans PRs for dead code,
 duplication, complexity, security/OWASP, a11y, static pentest hygiene and
 Sonar-style smells, posts ONE premium PR comment (graphs visible, tables
-collapsed) and gates the merge only on findings the PR *introduced*
+collapsed) and gates the merge only on findings the PR _introduced_
 (fingerprint diff vs a baseline — the Sonar "new code" model).
 
 Sibling of `vite-pr-coverage-insight`; a reference copy lives git-ignored at
@@ -71,7 +71,27 @@ Scanner execution model (deliberate split):
 State machine priority (buildReport):
 `scan-error > invalid-data > gate-failed > no-baseline > new-findings > improved > no-change > passed`.
 
+Baseline resolution (`baseline-mode` input): `auto` (default) reads the
+recorded baseline branch, falling back to **dual-scan** — scanning the PR's
+merge-base in a temp git worktree in the same run
+(`packages/action/src/baseline/dualScan.ts`, needs checkout `fetch-depth: 0`).
+The CLI equivalent is `pri scan --base-dir <base-checkout>`.
+
 ## Invariants — do not regress
+
+- **A PR that introduces nothing never fails.** ALL default gates are
+  diff-aware: `newFindings` per severity, and duplication scope `'new'` (fails
+  only when the PR raises duplication% above both the limit and the baseline +
+  0.1pt tolerance). Absolute gates (`totals`, duplication `scope: 'absolute'`)
+  are opt-in only.
+- The comment leads with the open-by-default "🆕 Introduced by this PR"
+  spoiler; when nothing is new, the pre-existing-debt note ("they don't block
+  this merge") must appear instead. The band's 🚦 gate card shows what was
+  judged.
+- `relativize()` in scanners must keep handling tool-reported paths that are
+  absolute, cwd-relative, or output-dir-relative, plus macOS /tmp →
+  /private/tmp realpath aliasing — wrong relative paths silently break
+  fingerprint matching across base/head scans (false 🆕).
 
 - **Fingerprints** = ruleId + file + normalized snippet (NO line numbers), so
   findings survive unrelated edits. Symbol-identity for knip,

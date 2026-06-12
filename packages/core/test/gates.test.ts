@@ -47,11 +47,50 @@ describe('evaluateGates', () => {
     expect(result.verdict).toBe('pass');
   });
 
-  it('gates duplication percentage', () => {
+  it('duplication (default scope "new"): pre-existing duplication never blocks (D3)', () => {
+    // 61.7% on the PR, 61.7% on base — the PR didn't make it worse
+    const result = evaluateGates({
+      findings: [],
+      duplicationPercent: 61.7,
+      baselineDuplicationPercent: 61.7,
+      config: DEFAULT_CONFIG,
+      hasBaseline: true,
+    });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('duplication (scope "new"): fails when the PR pushes the percentage up', () => {
+    const result = evaluateGates({
+      findings: [],
+      duplicationPercent: 8.4,
+      baselineDuplicationPercent: 6.0,
+      config: DEFAULT_CONFIG,
+      hasBaseline: true,
+    });
+    expect(result.verdict).toBe('fail');
+    expect(result.violations[0]).toMatchObject({ rule: 'duplication', limit: 5, actual: 8.4 });
+    expect(result.violations[0].detail).toContain('up from 6.0%');
+  });
+
+  it('duplication (scope "new"): unknown baseline percentage never blocks', () => {
+    const result = evaluateGates({
+      findings: [],
+      duplicationPercent: 40,
+      config: DEFAULT_CONFIG,
+      hasBaseline: true,
+    });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('duplication (scope "absolute"): hard cap regardless of baseline', () => {
+    const config = configSchema.parse({
+      gates: { duplication: { maxPercent: 5, scope: 'absolute' } },
+    });
     const result = evaluateGates({
       findings: [],
       duplicationPercent: 7.2,
-      config: DEFAULT_CONFIG,
+      baselineDuplicationPercent: 7.2,
+      config,
       hasBaseline: true,
     });
     expect(result.verdict).toBe('fail');

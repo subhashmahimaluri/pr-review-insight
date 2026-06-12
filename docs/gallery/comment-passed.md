@@ -2,7 +2,7 @@
 
 ## ✅ Code review gate passed
 
-_policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
+_policy: zero new critical · max 5 new major · max duplication 5% (new) · PR #12_
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./overview-band-dark.svg">
@@ -10,6 +10,8 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 </picture>
 
 <sub>Findings per category for this PR · Δ vs base `a1b2c3d` · sparklines: last 12 baseline runs</sub>
+
+💡 **This PR introduces no new findings.** The 21 findings below are pre-existing — shown as cleanup suggestions, they don't block this merge.
 
 <details>
 <summary>🔐 Security & OWASP (1 total)</summary>
@@ -27,7 +29,7 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 
 | Where                                                                                             | Rule                                 | Severity    | Finding                                                                       |
 | ------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------- | ----------------------------------------------------------------------------- |
-| [`.env:2`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L2-L2)                           | `pentest/public-env-secret`          | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
+| [`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4)                           | `pentest/public-env-secret`          | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
 | [`src/Component.tsx:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx#L5-L5) | `pentest/dangerously-set-inner-html` | 🟧 major    | `dangerouslySetInnerHTML` — XSS sink, sanitize or remove                      |
 | [`src/danger.ts:4`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L4-L4)         | `pentest/new-function`               | 🟧 major    | `new Function()` — dynamic code execution                                     |
 | [`src/danger.ts:10`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L10-L10)      | `pentest/open-redirect`              | 🟧 major    | Possible open redirect from user-controlled input                             |
@@ -61,13 +63,13 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 <details>
 <summary>🪦 Dead code (5 total)</summary>
 
-| File                                                                                      | Symbol              | Why                          |
-| ----------------------------------------------------------------------------------------- | ------------------- | ---------------------------- |
-| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `src/Component.tsx` | File is never imported       |
-| [`src/unused.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/unused.ts)         | `src/unused.ts`     | File is never imported       |
-| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`          | Unused dependency `left-pad` |
-| [`src/danger.ts:9`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L9-L9) | `redirect`          | Unused export `redirect`     |
-| [`src/util.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/util.ts#L5-L5)     | `neverCalled`       | Unused export `neverCalled`  |
+| File                                                                                      | Symbol        | Why                          |
+| ----------------------------------------------------------------------------------------- | ------------- | ---------------------------- |
+| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `entire file` | File is never imported       |
+| [`src/unused.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/unused.ts)         | `entire file` | File is never imported       |
+| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`    | Unused dependency `left-pad` |
+| [`src/danger.ts:9`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L9-L9) | `redirect`    | Unused export `redirect`     |
+| [`src/util.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/util.ts#L5-L5)     | `neverCalled` | Unused export `neverCalled`  |
 
 </details>
 
@@ -105,7 +107,7 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 
 | Where                                                                   | Rule                        | Severity    | Finding                                                                       |
 | ----------------------------------------------------------------------- | --------------------------- | ----------- | ----------------------------------------------------------------------------- |
-| [`.env:2`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L2-L2) | `pentest/public-env-secret` | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
+| [`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4) | `pentest/public-env-secret` | 🟥 critical | Secret-looking key under a client-exposed env prefix — it ships in the bundle |
 
 **[`index.html`](https://github.com/acme/webapp/blob/feedbeef0012/index.html)** — 2 findings
 

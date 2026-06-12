@@ -2,7 +2,7 @@
 
 ## ⚠️ New findings introduced
 
-_policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
+_policy: zero new critical · max 5 new major · max duplication 5% (new) · PR #12_
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./overview-band-dark.svg">
@@ -10,6 +10,18 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 </picture>
 
 <sub>Findings per category for this PR · Δ vs base `a1b2c3d` · sparklines: last 12 baseline runs</sub>
+
+<details open>
+<summary><b>🆕 Introduced by this PR (4) — what the gate judges</b></summary>
+
+| Where                                                                                        | Rule                    | Severity        | Finding                                                                           |
+| -------------------------------------------------------------------------------------------- | ----------------------- | --------------- | --------------------------------------------------------------------------------- |
+| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx)    | `knip/unused-file`      | **🟧 major** 🆕 | **File is never imported**                                                        |
+| [`src/danger.ts:10`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L10-L10) | `pentest/open-redirect` | **🟧 major** 🆕 | **Possible open redirect from user-controlled input**                             |
+| [`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3)    | `sonarjs/code-eval`     | **🟨 minor** 🆕 | **Make sure that this dynamic injection or execution of code is safe.**           |
+| [`index.html`](https://github.com/acme/webapp/blob/feedbeef0012/index.html)                  | `pentest/missing-csp`   | **⬜ info** 🆕  | **No Content-Security-Policy meta tag — consider adding one (or set the header)** |
+
+</details>
 
 <details>
 <summary>🎯 Pentest checks (2 new · 7 total)</summary>
@@ -27,6 +39,28 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 </details>
 
 <details>
+<summary>🪦 Dead code (1 new · 5 total)</summary>
+
+| File                                                                                      | Symbol        | Why                           |
+| ----------------------------------------------------------------------------------------- | ------------- | ----------------------------- |
+| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `entire file` | **File is never imported** 🆕 |
+| [`src/unused.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/unused.ts)         | `entire file` | File is never imported        |
+| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`    | Unused dependency `left-pad`  |
+| [`src/danger.ts:9`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L9-L9) | `redirect`    | Unused export `redirect`      |
+| [`src/util.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/util.ts#L5-L5)     | `neverCalled` | Unused export `neverCalled`   |
+
+</details>
+
+<details>
+<summary>🧹 Code smells (1 new · 1 total)</summary>
+
+| Where                                                                                     | Rule                | Severity        | Finding                                                                 |
+| ----------------------------------------------------------------------------------------- | ------------------- | --------------- | ----------------------------------------------------------------------- |
+| [`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3) | `sonarjs/code-eval` | **🟨 minor** 🆕 | **Make sure that this dynamic injection or execution of code is safe.** |
+
+</details>
+
+<details>
 <summary>🌀 Complexity (3 total)</summary>
 
 | Where                                                                                         | Rule                           | Severity | Finding                                                                              |
@@ -34,19 +68,6 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 | [`src/index.ts:16`](https://github.com/acme/webapp/blob/feedbeef0012/src/index.ts#L16-L16)    | `sonarjs/cognitive-complexity` | 🟧 major | Refactor this function to reduce its Cognitive Complexity from 43 to the 15 allowed. |
 | [`src/index.ts:23–31`](https://github.com/acme/webapp/blob/feedbeef0012/src/index.ts#L23-L31) | `max-depth`                    | 🟧 major | Blocks are nested too deeply (6). Maximum allowed is 5.                              |
 | [`src/index.ts:24–30`](https://github.com/acme/webapp/blob/feedbeef0012/src/index.ts#L24-L30) | `max-depth`                    | 🟧 major | Blocks are nested too deeply (7). Maximum allowed is 5.                              |
-
-</details>
-
-<details>
-<summary>🪦 Dead code (1 new · 5 total)</summary>
-
-| File                                                                                      | Symbol              | Why                           |
-| ----------------------------------------------------------------------------------------- | ------------------- | ----------------------------- |
-| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `src/Component.tsx` | **File is never imported** 🆕 |
-| [`src/unused.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/unused.ts)         | `src/unused.ts`     | File is never imported        |
-| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`          | Unused dependency `left-pad`  |
-| [`src/danger.ts:9`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L9-L9) | `redirect`          | Unused export `redirect`      |
-| [`src/util.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/util.ts#L5-L5)     | `neverCalled`       | Unused export `neverCalled`   |
 
 </details>
 
@@ -65,15 +86,6 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 | Where                                                                                             | Rule                | Severity | Finding                                                                                                    |
 | ------------------------------------------------------------------------------------------------- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
 | [`src/Component.tsx:4`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx#L4-L4) | `jsx-a11y/alt-text` | 🟨 minor | img elements must have an alt prop, either with meaningful text, or an empty string for decorative images. |
-
-</details>
-
-<details>
-<summary>🧹 Code smells (1 new · 1 total)</summary>
-
-| Where                                                                                     | Rule                | Severity        | Finding                                                                 |
-| ----------------------------------------------------------------------------------------- | ------------------- | --------------- | ----------------------------------------------------------------------- |
-| [`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3) | `sonarjs/code-eval` | **🟨 minor** 🆕 | **Make sure that this dynamic injection or execution of code is safe.** |
 
 </details>
 

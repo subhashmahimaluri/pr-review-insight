@@ -83,7 +83,8 @@ export const baselineMetaSchema = z
     sha: z.string(),
     ref: z.string().optional(),
     timestamp: z.string().optional(),
-    source: z.enum(['branch', 'cache', 'file']),
+    /** 'scan' = merge-base scanned in this very run (dual-scan mode) */
+    source: z.enum(['branch', 'cache', 'file', 'scan']),
     /** commits between merge-base and the baseline entry actually used */
     staleness: z.number().int().optional(),
   })
@@ -115,6 +116,7 @@ export const reviewReportSchema = z
     stats: z
       .object({
         duplicationPercent: z.number().optional(),
+        baselineDuplicationPercent: z.number().optional(),
         filesScanned: z.number().int().optional(),
       })
       .optional(),

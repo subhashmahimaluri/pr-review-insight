@@ -2,7 +2,7 @@
 
 ## ❌ Code review gate failed `blocks merge`
 
-_policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
+_policy: zero new critical · max 5 new major · max duplication 5% (new) · PR #12_
 
 > [!CAUTION]
 > **2 new critical findings block this merge** — worst: `pentest/public-env-secret` in `.env` (A07:2021-Identification and Authentication Failures).
@@ -10,7 +10,6 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 **Gate violations**
 
 - ❌ 2 new critical finding(s) — limit 0
-- ❌ duplication 12.7% — limit 5%
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./overview-band-dark.svg">
@@ -19,10 +18,20 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 
 <sub>Findings per category for this PR · Δ vs base `a1b2c3d` · sparklines: last 12 baseline runs</sub>
 
-**New critical findings**
+<details open>
+<summary><b>🆕 Introduced by this PR (7) — what the gate judges</b></summary>
 
-- [`.env:2`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L2-L2) — `pentest/public-env-secret`: Secret-looking key under a client-exposed env prefix — it ships in the bundle
-- [`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3) — `security/detect-eval-with-expression`: eval with argument of type Identifier
+| Where                                                                                             | Rule                                   | Severity           | Finding                                                                                                        |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| [`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4)                           | `pentest/public-env-secret`            | **🟥 critical** 🆕 | **Secret-looking key under a client-exposed env prefix — it ships in the bundle**                              |
+| [`src/danger.ts:3`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L3-L3)         | `security/detect-eval-with-expression` | **🟥 critical** 🆕 | **eval with argument of type Identifier**                                                                      |
+| [`src/index.ts:16`](https://github.com/acme/webapp/blob/feedbeef0012/src/index.ts#L16-L16)        | `sonarjs/cognitive-complexity`         | **🟧 major** 🆕    | **Refactor this function to reduce its Cognitive Complexity from 43 to the 15 allowed.**                       |
+| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)                   | `knip/unused-dependency`               | **🟨 minor** 🆕    | **Unused dependency `left-pad`**                                                                               |
+| [`src/Component.tsx:4`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx#L4-L4) | `jsx-a11y/alt-text`                    | **🟨 minor** 🆕    | **img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.** |
+| [`src/danger.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L5-L5)         | `pentest/cleartext-http`               | **🟨 minor** 🆕    | **Cleartext `http://` URL — use https**                                                                        |
+| [`src/invoices.ts:3–22`](https://github.com/acme/webapp/blob/feedbeef0012/src/invoices.ts#L3-L22) | `jscpd/duplication`                    | **🟨 minor** 🆕    | **20 duplicated lines, also at src/orders.ts:3–22**                                                            |
+
+</details>
 
 <details>
 <summary>🔐 Security & OWASP (1 new · 1 total)</summary>
@@ -40,7 +49,7 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 
 | Where                                                                                             | Rule                                 | Severity           | Finding                                                                           |
 | ------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------ | --------------------------------------------------------------------------------- |
-| [`.env:2`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L2-L2)                           | `pentest/public-env-secret`          | **🟥 critical** 🆕 | **Secret-looking key under a client-exposed env prefix — it ships in the bundle** |
+| [`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4)                           | `pentest/public-env-secret`          | **🟥 critical** 🆕 | **Secret-looking key under a client-exposed env prefix — it ships in the bundle** |
 | [`src/danger.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L5-L5)         | `pentest/cleartext-http`             | **🟨 minor** 🆕    | **Cleartext `http://` URL — use https**                                           |
 | [`src/Component.tsx:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx#L5-L5) | `pentest/dangerously-set-inner-html` | 🟧 major           | `dangerouslySetInnerHTML` — XSS sink, sanitize or remove                          |
 | [`src/danger.ts:4`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L4-L4)         | `pentest/new-function`               | 🟧 major           | `new Function()` — dynamic code execution                                         |
@@ -74,22 +83,13 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 <details>
 <summary>🪦 Dead code (1 new · 5 total)</summary>
 
-| File                                                                                      | Symbol              | Why                                 |
-| ----------------------------------------------------------------------------------------- | ------------------- | ----------------------------------- |
-| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`          | **Unused dependency `left-pad`** 🆕 |
-| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `src/Component.tsx` | File is never imported              |
-| [`src/unused.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/unused.ts)         | `src/unused.ts`     | File is never imported              |
-| [`src/danger.ts:9`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L9-L9) | `redirect`          | Unused export `redirect`            |
-| [`src/util.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/util.ts#L5-L5)     | `neverCalled`       | Unused export `neverCalled`         |
-
-</details>
-
-<details>
-<summary>🔄 Architecture (1 total)</summary>
-
-| Where                                                                   | Rule                        | Severity | Finding                                             |
-| ----------------------------------------------------------------------- | --------------------------- | -------- | --------------------------------------------------- |
-| [`src/a.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/a.ts) | `madge/circular-dependency` | 🟧 major | Circular dependency: src/a.ts → src/b.ts → src/a.ts |
+| File                                                                                      | Symbol        | Why                                 |
+| ----------------------------------------------------------------------------------------- | ------------- | ----------------------------------- |
+| [`package.json`](https://github.com/acme/webapp/blob/feedbeef0012/package.json)           | `left-pad`    | **Unused dependency `left-pad`** 🆕 |
+| [`src/Component.tsx`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx) | `entire file` | File is never imported              |
+| [`src/unused.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/unused.ts)         | `entire file` | File is never imported              |
+| [`src/danger.ts:9`](https://github.com/acme/webapp/blob/feedbeef0012/src/danger.ts#L9-L9) | `redirect`    | Unused export `redirect`            |
+| [`src/util.ts:5`](https://github.com/acme/webapp/blob/feedbeef0012/src/util.ts#L5-L5)     | `neverCalled` | Unused export `neverCalled`         |
 
 </details>
 
@@ -99,6 +99,15 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 | Where                                                                                             | Rule                | Severity        | Finding                                                                                                        |
 | ------------------------------------------------------------------------------------------------- | ------------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
 | [`src/Component.tsx:4`](https://github.com/acme/webapp/blob/feedbeef0012/src/Component.tsx#L4-L4) | `jsx-a11y/alt-text` | **🟨 minor** 🆕 | **img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.** |
+
+</details>
+
+<details>
+<summary>🔄 Architecture (1 total)</summary>
+
+| Where                                                                   | Rule                        | Severity | Finding                                             |
+| ----------------------------------------------------------------------- | --------------------------- | -------- | --------------------------------------------------- |
+| [`src/a.ts`](https://github.com/acme/webapp/blob/feedbeef0012/src/a.ts) | `madge/circular-dependency` | 🟧 major | Circular dependency: src/a.ts → src/b.ts → src/a.ts |
 
 </details>
 
@@ -118,7 +127,7 @@ _policy: zero new critical · max 5 new major · max duplication 5% · PR #12_
 
 | Where                                                                   | Rule                        | Severity           | Finding                                                                           |
 | ----------------------------------------------------------------------- | --------------------------- | ------------------ | --------------------------------------------------------------------------------- |
-| [`.env:2`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L2-L2) | `pentest/public-env-secret` | **🟥 critical** 🆕 | **Secret-looking key under a client-exposed env prefix — it ships in the bundle** |
+| [`.env:4`](https://github.com/acme/webapp/blob/feedbeef0012/.env#L4-L4) | `pentest/public-env-secret` | **🟥 critical** 🆕 | **Secret-looking key under a client-exposed env prefix — it ships in the bundle** |
 
 **[`index.html`](https://github.com/acme/webapp/blob/feedbeef0012/index.html)** — 2 findings
 
